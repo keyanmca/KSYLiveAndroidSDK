@@ -1,11 +1,13 @@
 package com.ksy.recordlib.service.core;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.TextureView;
 
+import com.ksy.recordlib.R;
 import com.ksy.recordlib.service.exception.KsyRecordException;
 import com.ksy.recordlib.service.recoder.RecoderVideoSource;
 import com.ksy.recordlib.service.rtmp.KSYRtmpFlvClient;
@@ -77,22 +79,24 @@ public class KsyRecordClient implements KsyRecord {
 
 
     private void setUpCamera() {
-        mCamera = Camera.open();
-        mCamera.setDisplayOrientation(90);
-        if (mConfig.getDisplayType() == Constants.DISPLAY_SURFACE_VIEW) {
-            try {
-                mCamera.setPreviewDisplay(mSurfaceView.getHolder());
-            } catch (IOException e) {
-                e.printStackTrace();
+        if (mCamera == null) {
+            mCamera = Camera.open();
+            mCamera.setDisplayOrientation(90);
+            if (mConfig.getDisplayType() == Constants.DISPLAY_SURFACE_VIEW) {
+                try {
+                    mCamera.setPreviewDisplay(mSurfaceView.getHolder());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                try {
+                    mCamera.setPreviewTexture(mTextureView.getSurfaceTexture());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        } else {
-            try {
-                mCamera.setPreviewTexture(mTextureView.getSurfaceTexture());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            mCamera.unlock();
         }
-        mCamera.unlock();
     }
 
     private void setUpEncoder() {
@@ -116,8 +120,9 @@ public class KsyRecordClient implements KsyRecord {
         Log.d(Constants.LOG_TAG, "DealWithMediaRecorder");
         if (mVideoSource == null) {
             mVideoSource = new RecoderVideoSource(mCamera, mConfig, mSurfaceView);
-            mVideoSource.start();
         }
+        mVideoSource.start();
+
     }
 
     // Encode using MediaCodec
@@ -143,6 +148,8 @@ public class KsyRecordClient implements KsyRecord {
     public void stopRecord() {
         if (mVideoSource != null) {
             mVideoSource.stop();
+            mCamera.release();
+            mCamera = null;
             mVideoSource = null;
         }
     }
@@ -151,6 +158,7 @@ public class KsyRecordClient implements KsyRecord {
     public void release() {
         if (mVideoSource != null) {
             mVideoSource.release();
+            mCamera = null;
             mVideoSource = null;
         }
     }

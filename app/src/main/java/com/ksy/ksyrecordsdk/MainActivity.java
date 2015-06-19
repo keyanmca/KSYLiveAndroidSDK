@@ -87,8 +87,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 Log.d(Constants.LOG_TAG, "Client Error, reason = " + e.getMessage());
             }
         } else {
+            // Here we also release
             client.stopRecord();
             mRecording = false;
+            Log.d(Constants.LOG_TAG, "stop and release");
         }
     }
 
@@ -116,7 +118,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     protected void onResume() {
         super.onResume();
         Log.d(Constants.LOG_TAG, "onResume");
-//        toggleRecord();
     }
 
     @Override

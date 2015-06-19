@@ -29,7 +29,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
     private KsyRecordClientConfig mConfig;
     private ParcelFileDescriptor[] piple;
     private FileInputStream is;
-    private boolean mRunning;
+    private boolean mRunning = false;
     private String path;
 
     public RecoderVideoSource(Camera mCamera, KsyRecordClientConfig mConfig, SurfaceView mSurfaceView) {
@@ -77,15 +77,14 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
 //            this.thread = new Thread(this);
 //            this.thread.start();
         }
-
     }
 
     @Override
     public void stop() {
-/*        mRecorder.stop();
-        mRecorder.release();
-        mRecorder = null;*/
-        release();
+        if (mRunning == true) {
+            release();
+            mRunning = false;
+        }
     }
 
     @Override
