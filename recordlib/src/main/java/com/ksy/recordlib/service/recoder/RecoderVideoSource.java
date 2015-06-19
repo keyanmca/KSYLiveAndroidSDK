@@ -1,7 +1,6 @@
 package com.ksy.recordlib.service.recoder;
 
 import android.hardware.Camera;
-import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
@@ -13,7 +12,6 @@ import com.ksy.recordlib.service.util.Constants;
 import com.ksy.recordlib.service.util.FileUtil;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -83,13 +81,13 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
     public void stop() {
         if (mRunning == true) {
             release();
-            mRunning = false;
         }
     }
 
     @Override
     public void release() {
-        releaseRecoder();
+        mRunning = false;
+        releaseRecorder();
         releaseCamera();
     }
 
@@ -100,11 +98,12 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
         }
     }
 
-    private void releaseRecoder() {
+    private void releaseRecorder() {
         if (mRecorder != null) {
-            Log.d(Constants.LOG_TAG, "mRecorder reset begin");
+            mRecorder.setOnErrorListener(null);
+            mRecorder.setOnInfoListener(null);
             mRecorder.reset();
-            Log.d(Constants.LOG_TAG, "mRecorder reset over");
+            Log.d(Constants.LOG_TAG, "mRecorder reset");
             mRecorder.release();
             Log.d(Constants.LOG_TAG, "mRecorder release");
             mRecorder = null;

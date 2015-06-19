@@ -1,6 +1,7 @@
 package com.ksy.ksyrecordsdk;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.os.Build;
 import android.support.design.widget.FloatingActionButton;
 import android.os.Bundle;
@@ -10,7 +11,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 import com.ksy.recordlib.service.core.KsyRecordClient;
 import com.ksy.recordlib.service.exception.KsyRecordException;
@@ -24,6 +28,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private boolean mRecording = false;
     private SurfaceHolder mSurfaceHolder;
     private KsyRecordClient client;
+    private RelativeLayout mContainer;
+    private ImageView mImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +41,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     }
 
     private void initWidget() {
+        mContainer = (RelativeLayout) findViewById(R.id.container);
+        mImageView = new ImageView(MainActivity.this);
+        mImageView.setBackgroundColor(0xff000000);
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private void toggleRecord() {
         if (!mRecording) {
             try {
+                mContainer.removeView(mImageView);
                 client.startRecord();
                 mRecording = true;
             } catch (KsyRecordException e) {
@@ -88,6 +98,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             }
         } else {
             // Here we also release
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+            mContainer.addView(mImageView, params);
             client.stopRecord();
             mRecording = false;
             Log.d(Constants.LOG_TAG, "stop and release");
@@ -163,6 +175,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.d(Constants.LOG_TAG, "surfaceDestroyed");
-//        mSurfaceHolder = null;
+        mSurfaceHolder = null;
     }
 }

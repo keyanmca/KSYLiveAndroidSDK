@@ -148,7 +148,6 @@ public class KsyRecordClient implements KsyRecord {
     public void stopRecord() {
         if (mVideoSource != null) {
             mVideoSource.stop();
-            mCamera.release();
             mCamera = null;
             mVideoSource = null;
         }
