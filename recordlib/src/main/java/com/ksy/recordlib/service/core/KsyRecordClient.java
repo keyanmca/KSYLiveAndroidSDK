@@ -1,15 +1,16 @@
 package com.ksy.recordlib.service.core;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.hardware.Camera;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.TextureView;
 
-import com.ksy.recordlib.R;
 import com.ksy.recordlib.service.exception.KsyRecordException;
 import com.ksy.recordlib.service.recoder.RecoderVideoSource;
+import com.ksy.recordlib.service.recoder.RecoderVideoTempSource;
 import com.ksy.recordlib.service.rtmp.KSYRtmpFlvClient;
 import com.ksy.recordlib.service.util.Constants;
 
@@ -20,6 +21,7 @@ import java.io.IOException;
  */
 public class KsyRecordClient implements KsyRecord {
     private static KsyRecordClient mInstance;
+    private RecordHandler mRecordHandler;
     private Context mContext;
     private int mEncodeMode = Constants.ENCODE_MODE_MEDIA_RECORDER;
     private static KsyRecordClientConfig mConfig;
@@ -28,12 +30,15 @@ public class KsyRecordClient implements KsyRecord {
     private SurfaceView mSurfaceView;
     private TextureView mTextureView;
     private KsyMediaSource mVideoSource;
+    private KsyMediaSource mAudioSource;
+    private KsyMediaSource mVideoTempSource;
 
     private KsyRecordClient() {
     }
 
     private KsyRecordClient(Context context) {
         this.mContext = context;
+        mRecordHandler = new RecordHandler();
     }
 
 
@@ -55,13 +60,31 @@ public class KsyRecordClient implements KsyRecord {
         mEncodeMode = judgeEncodeMode(mContext);
         if (checkConfig()) {
             // Here we begin
-//            startRtmpFlvClient();
-            setUpCamera();
-            setUpEncoder();
+            if (mEncodeMode == Constants.ENCODE_MODE_MEDIA_RECORDER) {
+                setUpMp4Config(mRecordHandler);
+            } else {
+                startRecordStep();
+            }
+
         } else {
             throw new KsyRecordException("Check KsyRecordClient Configuration, param should be correct");
         }
 
+    }
+
+    private void startRecordStep() {
+        // startRtmpFlvClient();
+        setUpCamera(true);
+        setUpEncoder();
+    }
+
+
+    private void setUpMp4Config(RecordHandler mRecordHandler) {
+        setUpCamera(true);
+        if (mVideoTempSource == null) {
+            mVideoTempSource = new RecoderVideoTempSource(mCamera, mConfig, mSurfaceView, mRecordHandler,mContext);
+            mVideoTempSource.start();
+        }
     }
 
     private void startRtmpFlvClient() throws KsyRecordException {
@@ -78,19 +101,23 @@ public class KsyRecordClient implements KsyRecord {
     }
 
 
-    private void setUpCamera() {
+    private void setUpCamera(boolean needPreview) {
         if (mCamera == null) {
             mCamera = Camera.open();
             mCamera.setDisplayOrientation(90);
             if (mConfig.getDisplayType() == Constants.DISPLAY_SURFACE_VIEW) {
                 try {
-                    mCamera.setPreviewDisplay(mSurfaceView.getHolder());
+                    if (needPreview) {
+                        mCamera.setPreviewDisplay(mSurfaceView.getHolder());
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             } else {
                 try {
-                    mCamera.setPreviewTexture(mTextureView.getSurfaceTexture());
+                    if (needPreview) {
+                        mCamera.setPreviewTexture(mTextureView.getSurfaceTexture());
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -118,10 +145,16 @@ public class KsyRecordClient implements KsyRecord {
     // Encode using MediaRecorder
     private void DealWithMediaRecorder() {
         Log.d(Constants.LOG_TAG, "DealWithMediaRecorder");
+        // Video Source
         if (mVideoSource == null) {
-            mVideoSource = new RecoderVideoSource(mCamera, mConfig, mSurfaceView);
+            mVideoSource = new RecoderVideoSource(mCamera, mConfig, mSurfaceView,mRecordHandler,mContext);
+            mVideoSource.start();
         }
-        mVideoSource.start();
+        // Audio Source
+        if (mAudioSource == null) {
+//            mAudioSource = new RecoderAudioSource(mConfig);
+//            mAudioSource.start();
+        }
 
     }
 
@@ -144,12 +177,18 @@ public class KsyRecordClient implements KsyRecord {
         return Constants.ENCODE_MODE_MEDIA_RECORDER;
     }
 
+
     @Override
     public void stopRecord() {
         if (mVideoSource != null) {
             mVideoSource.stop();
             mCamera = null;
             mVideoSource = null;
+        }
+        if (mVideoTempSource != null) {
+            mVideoTempSource.stop();
+            mCamera = null;
+            mVideoTempSource = null;
         }
     }
 
@@ -159,6 +198,11 @@ public class KsyRecordClient implements KsyRecord {
             mVideoSource.release();
             mCamera = null;
             mVideoSource = null;
+        }
+        if (mVideoTempSource != null) {
+            mVideoTempSource.stop();
+            mCamera = null;
+            mVideoTempSource = null;
         }
     }
 
@@ -214,6 +258,24 @@ public class KsyRecordClient implements KsyRecord {
     public void setDisplayPreview(TextureView textureView) {
         this.mTextureView = textureView;
         mConfig.setDisplayType(Constants.DISPLAY_TEXTURE_VIEW);
+    }
+
+    public class RecordHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case Constants.MESSAGE_MP4CONFIG_FINISH:
+                    Log.d(Constants.LOG_TAG, "back to continue");
+                    release();
+                    startRecordStep();
+                    break;
+                case Constants.MESSAGE_MP4CONFIG_START_PREVIEW:
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
 }

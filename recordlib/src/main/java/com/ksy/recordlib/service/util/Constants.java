@@ -28,4 +28,10 @@ public class Constants {
     public static final int MEDIA_TYPE_IMAGE = 0;
     public static final int MEDIA_TYPE_VIDEO = 1;
     public static final int MEDIA_TYPE_TXT = 2;
+    public static final int MESSAGE_MP4CONFIG_FINISH = 0;
+    public static final int MESSAGE_MP4CONFIG_START_PREVIEW = 1;
+    public static final String PREFERENCE_KEY_MP4CONFIG_PROFILE_LEVEL = "profile_level";
+    public static final String PREFERENCE_KEY_MP4CONFIG_B64PPS = "b64pps";
+    public static final String PREFERENCE_KEY_MP4CONFIG_B64SPS = "b64sps";
+    public static final String PREFERENCE_NAME = "preference_key";
 }
