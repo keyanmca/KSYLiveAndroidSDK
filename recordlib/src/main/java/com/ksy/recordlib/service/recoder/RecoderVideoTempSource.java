@@ -17,7 +17,6 @@ import com.ksy.recordlib.service.util.PrefUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -35,12 +34,12 @@ public class RecoderVideoTempSource extends KsyMediaSource implements MediaRecor
     private MediaRecorder mRecorder;
     private KsyRecordClientConfig mConfig;
     private ParcelFileDescriptor[] piple;
-    private FileInputStream is;
     private boolean mRunning = false;
     private String path;
     private Semaphore mLock = new Semaphore(0);
 
     public RecoderVideoTempSource(Camera mCamera, KsyRecordClientConfig mConfig, SurfaceView mSurfaceView, KsyRecordClient.RecordHandler mRecordHandler, Context mContext) {
+        super(mConfig.getUrl());
         this.mCamera = mCamera;
         this.mConfig = mConfig;
         this.mSurefaceView = mSurfaceView;
@@ -98,7 +97,7 @@ public class RecoderVideoTempSource extends KsyMediaSource implements MediaRecor
             File file = new File(path);
             if (!file.delete()) Log.e(Constants.LOG_TAG, "Temp file could not be erased");
             Log.d(Constants.LOG_TAG, "ProfileLevel = " + config.getProfileLevel() + ",B64SPS = " + config.getB64SPS() + ",B64PPS = " + config.getB64PPS());
-            PrefUtil.saveMp4Config(mContext,config);
+            PrefUtil.saveMp4Config(mContext, config);
         } catch (IOException e) {
             e.printStackTrace();
         }

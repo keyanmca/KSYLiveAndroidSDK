@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private void toggleRecord() {
         if (!mRecording) {
             try {
+                // Show preview
                 mContainer.removeView(mImageView);
                 client.startRecord();
                 mRecording = true;
@@ -99,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         } else {
             // Here we also release
             RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+            // Trick for hide preview
             mContainer.addView(mImageView, params);
             client.stopRecord();
             mRecording = false;

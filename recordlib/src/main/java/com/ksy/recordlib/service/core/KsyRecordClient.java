@@ -9,6 +9,7 @@ import android.view.SurfaceView;
 import android.view.TextureView;
 
 import com.ksy.recordlib.service.exception.KsyRecordException;
+import com.ksy.recordlib.service.recoder.RecoderAudioSource;
 import com.ksy.recordlib.service.recoder.RecoderVideoSource;
 import com.ksy.recordlib.service.recoder.RecoderVideoTempSource;
 import com.ksy.recordlib.service.rtmp.KSYRtmpFlvClient;
@@ -82,7 +83,7 @@ public class KsyRecordClient implements KsyRecord {
     private void setUpMp4Config(RecordHandler mRecordHandler) {
         setUpCamera(true);
         if (mVideoTempSource == null) {
-            mVideoTempSource = new RecoderVideoTempSource(mCamera, mConfig, mSurfaceView, mRecordHandler,mContext);
+            mVideoTempSource = new RecoderVideoTempSource(mCamera, mConfig, mSurfaceView, mRecordHandler, mContext);
             mVideoTempSource.start();
         }
     }
@@ -147,12 +148,12 @@ public class KsyRecordClient implements KsyRecord {
         Log.d(Constants.LOG_TAG, "DealWithMediaRecorder");
         // Video Source
         if (mVideoSource == null) {
-            mVideoSource = new RecoderVideoSource(mCamera, mConfig, mSurfaceView,mRecordHandler,mContext);
+            mVideoSource = new RecoderVideoSource(mCamera, mConfig, mSurfaceView, mRecordHandler, mContext);
             mVideoSource.start();
         }
         // Audio Source
         if (mAudioSource == null) {
-//            mAudioSource = new RecoderAudioSource(mConfig);
+//            mAudioSource = new RecoderAudioSource(mConfig, mRecordHandler, mContext);
 //            mAudioSource.start();
         }
 
@@ -172,7 +173,7 @@ public class KsyRecordClient implements KsyRecord {
 
     }
 
-    private int judgeEncodeMode(Context mContext) {
+    private int judgeEncodeMode(Context context) {
         // to do
         return Constants.ENCODE_MODE_MEDIA_RECORDER;
     }
@@ -190,6 +191,10 @@ public class KsyRecordClient implements KsyRecord {
             mCamera = null;
             mVideoTempSource = null;
         }
+        if (mAudioSource != null) {
+            mAudioSource.stop();
+            mAudioSource = null;
+        }
     }
 
     @Override
@@ -200,9 +205,13 @@ public class KsyRecordClient implements KsyRecord {
             mVideoSource = null;
         }
         if (mVideoTempSource != null) {
-            mVideoTempSource.stop();
+            mVideoTempSource.release();
             mCamera = null;
             mVideoTempSource = null;
+        }
+        if (mAudioSource != null) {
+            mAudioSource.release();
+            mAudioSource = null;
         }
     }
 
