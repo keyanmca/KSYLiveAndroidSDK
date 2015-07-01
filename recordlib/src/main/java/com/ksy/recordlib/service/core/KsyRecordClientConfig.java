@@ -10,7 +10,7 @@ public class KsyRecordClientConfig {
     private int mVoiceType;
     private int mAudioSampleRate;
     private int mAudioBitRate;
-    private int mVideoFrameRate;
+    private int mVideoFrameRate = 30;
     private int mVideoBitRate;
     private int mVideoResolutionType;
     private int mDropFrameFrequency;

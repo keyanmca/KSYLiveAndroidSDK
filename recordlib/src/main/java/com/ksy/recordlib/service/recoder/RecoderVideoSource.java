@@ -6,6 +6,8 @@ import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 import android.view.SurfaceView;
 
@@ -31,8 +33,8 @@ import java.util.ArrayList;
  * Created by eflakemac on 15/6/19.
  */
 public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.OnInfoListener, MediaRecorder.OnErrorListener {
-    private static final int FRAME_TYPE_PPS = 0;
-    private static final int FRAME_TYPE_SPS = 1;
+    private static final int FRAME_TYPE_PPS = 1;
+    private static final int FRAME_TYPE_SPS = 0;
     private static final int FRAME_TYPE_DATA = 2;
     private static final int FRAME_DEFINE_TYPE_VIDEO = 9;
     private static final int FRAME_DEFINE_HEAD_LENGTH = 11;
@@ -64,9 +66,11 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
     private byte[] dataLengthArray;
     private byte[] timestampArray;
     private byte[] allFrameLengthArray;
-    private byte[] buffer = new byte[1000 * 1000];
+    private byte[] buffer = new byte[1 * 1000 * 1000];
     private boolean isWriteFlvInSdcard = false;
     private int recordsum = 0;
+    private int videoExtraSize = 9;
+    private int last_sum = 0;
 
 
     public RecoderVideoSource(Camera mCamera, KsyRecordClientConfig mConfig, SurfaceView mSurfaceView, KsyRecordClient.RecordHandler mRecordHandler, Context mContext) {
@@ -83,14 +87,8 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
     public void prepare() {
         mRecorder.setCamera(mCamera);
         mRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-//        CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
-//        profile.videoFrameWidth = 1;
-//        profile.videoFrameHeight = 1;
-//        mRecorder.setProfile(profile);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-//        mRecorder.setVideoFrameRate(mConfig.getVideoFrameRate());
-//        mRecorder.setOutputFile(FileUtil.getOutputMediaFile(Constants.MEDIA_TYPE_VIDEO));
         try {
             this.piple = ParcelFileDescriptor.createPipe();
         } catch (IOException e) {
@@ -179,9 +177,9 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
             Log.d(Constants.LOG_TAG, "pl = " + pl + ",pps =" + pps + ",sps = " + sps);
             while (!Thread.interrupted()) {
                 // Begin parse video data
-                oldTime = System.nanoTime();
+                oldTime = System.currentTimeMillis();
                 parseAndSend();
-                duration = System.nanoTime() - oldTime;
+                duration = System.currentTimeMillis() - oldTime;
                 stats.push(duration);
                 delay = stats.average();
             }
@@ -198,11 +196,9 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
             // 0-3 length,4 type
 //            int headerResult = is.read(header, 0, 4);
             int headerResult = fill(header, 0, 4);
-
             Log.d(Constants.LOG_TAG, "header size = " + 4 + "header read result = " + headerResult);
-            if (headerResult != 4) {
-            }
             ts += delay;
+            Log.d(Constants.LOG_TAG, "timestamp = " + ts);
             length = (header[0] & 0xFF) << 24 | (header[1] & 0xFF) << 16 | (header[2] & 0xFF) << 8 | (header[3] & 0xFF);
             if (length > 100000 || length < 0) {
 //                resync();
@@ -212,60 +208,109 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
                 content = null;
             }
             content = new byte[length];
-//          int contentResult = is.read(content, 0, length);
             int contentResult = fill(content, 0, length);
             Log.d(Constants.LOG_TAG, "content length = " + length + ",content read result = " + contentResult);
-//            content = null;
             sum += length;
             // Three types of flv video frame
             if (!isSpsFrameSended) {
                 content = null;
-                content = sps.getBytes();
+                // Step One ,insert in header,sps & pps prefix & data
+                byte[] sps_prefix = hexStringToBytes("0142C028FFE1");
+                byte[] sps_only = Base64.decode(sps.getBytes(), Base64.DEFAULT);
+                byte[] sps_length = intToByteArrayTwoByte(sps_only.length);
+                byte[] pps_prefix = hexStringToBytes("01");
+                byte[] pps_only = Base64.decode(pps.getBytes(), Base64.DEFAULT);
+                byte[] pps_length = intToByteArrayTwoByte(pps_only.length);
+                byte[] sps_pps = new byte[sps_prefix.length + sps_length.length + sps_only.length + pps_prefix.length
+                        + pps_only.length + pps_length.length];
+                fillArray(sps_pps, sps_prefix);
+                fillArray(sps_pps, sps_length);
+                fillArray(sps_pps, sps_only);
+                fillArray(sps_pps, pps_prefix);
+                fillArray(sps_pps, pps_length);
+                fillArray(sps_pps, pps_only);
+                // build sps_pps end
+                content = sps_pps;
+//                content = Base64.decode(sps.getBytes(), Base64.DEFAULT);
                 length = content.length;
-                makeFlvFrame();
+                makeFlvFrame(FRAME_TYPE_SPS);
                 isSpsFrameSended = true;
                 return;
             }
-            if (!isPpsFrameSended) {
-                content = null;
-                content = pps.getBytes();
-                length = content.length;
-                makeFlvFrame();
-                isPpsFrameSended = true;
-                return;
-            }
-            makeFlvFrame();
+//            if (!isPpsFrameSended) {
+//                content = null;
+//                content = Base64.decode(pps.getBytes(), Base64.DEFAULT);
+//                length = content.length;
+//                makeFlvFrame(FRAME_TYPE_PPS);
+//                isPpsFrameSended = true;
+//                return;
+//            }
+            makeFlvFrame(FRAME_TYPE_DATA);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void makeFlvFrame() {
+    private void fillArray(byte[] sps_pps, byte[] target) {
+        for (int i = 0; i < target.length; i++) {
+            sps_pps[last_sum + i] = target[i];
+        }
+        last_sum += target.length;
+    }
+
+    private void makeFlvFrame(int type) {
         if (flvFrameByteArray != null) {
             flvFrameByteArray = null;
         }
-        flvFrameByteArray = new byte[FRAME_DEFINE_HEAD_LENGTH + length + FRAME_DEFINE_FOOTER_LENGTH];
+        if (type == FRAME_TYPE_SPS) {
+            videoExtraSize = 5;
+        } else {
+            videoExtraSize = 9;
+        }
+        flvFrameByteArray = new byte[FRAME_DEFINE_HEAD_LENGTH + length + videoExtraSize + FRAME_DEFINE_FOOTER_LENGTH];
         flvFrameByteArray[0] = (byte) FRAME_DEFINE_TYPE_VIDEO;
-        dataLengthArray = intToByteArray(length);
+        dataLengthArray = intToByteArray(length + videoExtraSize);
         flvFrameByteArray[1] = dataLengthArray[0];
         flvFrameByteArray[2] = dataLengthArray[1];
         flvFrameByteArray[3] = dataLengthArray[2];
         timestampArray = longToByteArray(ts);
-        flvFrameByteArray[4] = timestampArray[0];
-        flvFrameByteArray[5] = timestampArray[1];
-        flvFrameByteArray[6] = timestampArray[2];
-        flvFrameByteArray[7] = timestampArray[3];
+        flvFrameByteArray[4] = timestampArray[1];
+        flvFrameByteArray[5] = timestampArray[2];
+        flvFrameByteArray[6] = timestampArray[3];
+        flvFrameByteArray[7] = timestampArray[0];
         flvFrameByteArray[8] = (byte) 0;
         flvFrameByteArray[9] = (byte) 0;
         flvFrameByteArray[10] = (byte) 0;
-        for (int i = 0; i < length; i++) {
-            flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + i] = content[i];
+
+        // added 5 extra bytes
+        for (int i = 0; i < length + videoExtraSize; i++) {
+            if (i < videoExtraSize) {
+                if (i == 0) {
+                    //1 byte flag
+                    flvFrameByteArray[11 + i] = (byte) 23;
+                } else if (i == 1) {
+                    if (type == FRAME_TYPE_SPS || type == FRAME_TYPE_PPS) {
+                        flvFrameByteArray[11 + i] = (byte) 0;
+                    } else {
+                        flvFrameByteArray[11 + i] = (byte) 1;
+                    }
+                } else if (i < 5) {
+                    flvFrameByteArray[11 + i] = (byte) 0;
+                } else {
+                    if (type != FRAME_TYPE_SPS) {
+                        byte[] real_length = intToByteArrayFull(length - 4);
+                        flvFrameByteArray[11 + i] = real_length[i - 5];
+                    }
+                }
+            } else {
+                flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + videoExtraSize + i - videoExtraSize] = content[i - videoExtraSize];
+            }
         }
-        allFrameLengthArray = intToByteArrayFull(FRAME_DEFINE_HEAD_LENGTH + length + FRAME_DEFINE_FOOTER_LENGTH);
-        flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + length] = allFrameLengthArray[0];
-        flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + length + 1] = allFrameLengthArray[0];
-        flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + length + 2] = allFrameLengthArray[1];
-        flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + length + 3] = allFrameLengthArray[2];
+        allFrameLengthArray = intToByteArrayFull(FRAME_DEFINE_HEAD_LENGTH + length + videoExtraSize + FRAME_DEFINE_FOOTER_LENGTH);
+        flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + length + videoExtraSize] = allFrameLengthArray[0];
+        flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + length + videoExtraSize + 1] = allFrameLengthArray[1];
+        flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + length + videoExtraSize + 2] = allFrameLengthArray[2];
+        flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + length + videoExtraSize + 3] = allFrameLengthArray[3];
 //        sender.send(flvFrameByteArray, FRAME_DEFINE_HEAD_LENGTH + length + FRAME_DEFINE_FOOTER_LENGTH);
         for (int i = 0; i < flvFrameByteArray.length; i++) {
             if (recordsum + i < buffer.length) {
@@ -275,7 +320,11 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
                     for (int j = 0; j < 9; j++) {
                         buffer[recordsum + j] = flv[j];
                     }
-                    buffer[recordsum + 9 + i] = flvFrameByteArray[i];
+                    buffer[recordsum + 9 + 0] = 0;
+                    buffer[recordsum + 9 + 1] = 0;
+                    buffer[recordsum + 9 + 2] = 0;
+                    buffer[recordsum + 9 + 3] = 0;
+                    buffer[recordsum + 9 + 4 + i] = flvFrameByteArray[i];
                 } else {
                     buffer[recordsum + i] = flvFrameByteArray[i];
                 }
@@ -287,7 +336,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
                     if (!dir.exists()) {
                         dir.mkdir();
                     }
-                    createFile(dir + File.separator + "frame", buffer);
+                    createFile(dir + File.separator + "frame.flv", buffer);
                     Log.d(Constants.LOG_TAG, "write flv into sdcard complete");
                     isWriteFlvInSdcard = true;
                 } else {
@@ -298,7 +347,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
             }
         }
         if (recordsum == 0) {
-            recordsum += flvFrameByteArray.length + 9;
+            recordsum += flvFrameByteArray.length + 9 + 4;
         } else {
             recordsum += flvFrameByteArray.length;
         }
@@ -326,12 +375,21 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
         return result;
     }
 
+    private byte[] intToByteArrayTwoByte(int length) {
+        byte[] result = new byte[2];
+//        result[0] = (byte) ((length >> 24) & 0xFF);
+//        result[0] = (byte) ((length >> 16) & 0xFF);
+        result[0] = (byte) ((length >> 8) & 0xFF);
+        result[1] = (byte) ((length >> 0) & 0xFF);
+        return result;
+    }
+
     private byte[] intToByteArrayFull(int length) {
-        byte[] result = new byte[3];
+        byte[] result = new byte[4];
         result[0] = (byte) ((length >> 24) & 0xFF);
-        result[0] = (byte) ((length >> 16) & 0xFF);
-        result[1] = (byte) ((length >> 8) & 0xFF);
-        result[2] = (byte) ((length >> 0) & 0xFF);
+        result[1] = (byte) ((length >> 16) & 0xFF);
+        result[2] = (byte) ((length >> 8) & 0xFF);
+        result[3] = (byte) ((length >> 0) & 0xFF);
         return result;
     }
 

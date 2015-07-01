@@ -16,6 +16,7 @@ import com.ksy.recordlib.service.rtmp.KSYRtmpFlvClient;
 import com.ksy.recordlib.service.util.Constants;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by eflakemac on 15/6/17.
@@ -106,6 +107,13 @@ public class KsyRecordClient implements KsyRecord {
         if (mCamera == null) {
             mCamera = Camera.open();
             mCamera.setDisplayOrientation(90);
+            Camera.Parameters parameters = mCamera.getParameters();
+            List<Camera.Size> mSupportedPreviewSizes = parameters.getSupportedPreviewSizes();
+            Camera.Size optimalSize = CameraHelper.getOptimalPreviewSize(mSupportedPreviewSizes,
+                    mSurfaceView.getWidth(), mSurfaceView.getHeight());
+            parameters.setPreviewSize(optimalSize.width, optimalSize.height);
+            mCamera.setParameters(parameters);
+
             if (mConfig.getDisplayType() == Constants.DISPLAY_SURFACE_VIEW) {
                 try {
                     if (needPreview) {
