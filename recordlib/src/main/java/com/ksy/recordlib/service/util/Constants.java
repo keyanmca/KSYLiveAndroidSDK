@@ -11,7 +11,7 @@ public class Constants {
     // Voice Type
     public static final int VOICE_TYPE_MIC = 0;
     // Voice Encode Default
-    public static final int AUDIO_SAMPLE_RATE_DEFAULT = 8000;
+    public static final int AUDIO_SAMPLE_RATE_DEFAULT = 44100;
     public static final int AUDIO_BIT_RATE_DEFAULT = 32000;
     public static final int VIDEO_FRAME_RATE_DEFAULT = 20;
     public static final int VIDEO_BIT_RATE_DEFAULT = 5000000;
