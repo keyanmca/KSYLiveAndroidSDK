@@ -216,6 +216,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             Log.d(Constants.LOG_TAG, "write frame ,length =" + frame_length);
             // send
 
+
             duration = System.currentTimeMillis() - oldTime;
             stats.push(duration);
             delay = stats.average();
