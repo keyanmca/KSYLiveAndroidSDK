@@ -1,7 +1,5 @@
 package com.ksy.recordlib.service.core;
 
-import com.ksy.recordlib.service.util.Constants;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -13,7 +11,6 @@ public abstract class KsyMediaSource implements Runnable {
     protected FileInputStream is;
     protected byte[] header = new byte[4];
     protected long ts = 0;
-//    protected KsyRecordSender sender;
 
     public abstract void prepare();
 
@@ -23,9 +20,24 @@ public abstract class KsyMediaSource implements Runnable {
 
     public abstract void release();
 
-    protected KsyMediaSource(String url) {
-//        sender = new KsyRecordSender(url);
+//    protected KsyRecordSender sender;
+
+    /*protected KsyMediaSource(String url, int i) {
+        Log.e("lixp", "KsyMediaSource  27  ....");
+
+//        KsyRecordSender.getInstance().setmUrl(url, i);
+
+        sender = new KsyRecordSender(url, i);
+
+      *//*  try {
+            sender.start();
+
+        } catch (Exception e) {
+            Log.e("lixp","KsyMediaSource   e = " + e);
+        }*//*
+
     }
+*/
 
     protected int fill(byte[] buffer, int offset, int length) throws IOException {
         int sum = 0, len;

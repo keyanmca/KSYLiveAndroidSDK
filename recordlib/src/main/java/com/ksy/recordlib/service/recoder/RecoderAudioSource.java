@@ -4,12 +4,13 @@ import android.content.Context;
 import android.media.MediaRecorder;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
-import android.util.Base64;
 import android.util.Log;
 
+import com.ksy.recordlib.service.core.KSYFlvData;
 import com.ksy.recordlib.service.core.KsyMediaSource;
 import com.ksy.recordlib.service.core.KsyRecordClient;
 import com.ksy.recordlib.service.core.KsyRecordClientConfig;
+import com.ksy.recordlib.service.core.KsyRecordSender;
 import com.ksy.recordlib.service.util.Constants;
 
 import java.io.BufferedOutputStream;
@@ -48,6 +49,8 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
     private int videoExtraSize = 2;
     private static final int FRAME_DEFINE_HEAD_LENGTH = 11;
     private static final int FRAME_DEFINE_FOOTER_LENGTH = 4;
+    private static final int AUDIO_TAG = 0;
+
     private byte[] judge_buffer;
     private boolean isWaitingParse = false;
     private boolean isNeedLoop = true;
@@ -57,12 +60,20 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
     private byte[] special_content;
     private boolean isSpecialFrame = true;
 
+    private static final int FROM_AUDIO_DATA = 8;
+    private KsyRecordSender ksyRecordSender;
+
+
     public RecoderAudioSource(KsyRecordClientConfig mConfig, KsyRecordClient.RecordHandler mRecordHandler, Context mContext) {
-        super(mConfig.getUrl());
+//        super(mConfig.getUrl(), AUDIO_TAG);//TODO
         this.mConfig = mConfig;
         this.mRecordHandler = mRecordHandler;
         this.mContext = mContext;
         mRecorder = new MediaRecorder();
+
+        ksyRecordSender = KsyRecordSender.getRecordInstance();
+        ksyRecordSender.setRecorderData(mConfig.getUrl(), AUDIO_TAG);
+
     }
 
     @Override
@@ -71,7 +82,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
         mRecorder.setOnInfoListener(this);
         mRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
-        mRecorder.setAudioChannels(2);
+        mRecorder.setAudioChannels(1);
         mRecorder.setAudioSamplingRate(mConfig.getAudioSampleRate());
         mRecorder.setAudioEncodingBitRate(mConfig.getAudioBitRate());
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
@@ -198,8 +209,11 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
                     } else if (i == 1) {
                         if (isSpecialFrame) {
                             flvFrameByteArray[11 + i] = (byte) 0x00;
+                            isSpecialFrame = false;
+
                         } else {
                             flvFrameByteArray[11 + i] = (byte) 0x01;
+                            //isSpecialFrame = true;
                         }
                     } else {
 
@@ -215,13 +229,26 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + frame_length + videoExtraSize + 3] = allFrameLengthArray[3];
             Log.d(Constants.LOG_TAG, "write frame ,length =" + frame_length);
             // send
+//            sender.send(flvFrameByteArray, flvFrameByteArray.length);
 
+            //添加音频数据到队列
+            KSYFlvData ksyAudio = new KSYFlvData();
+            ksyAudio.byteBuffer = ByteBuffer.wrap(flvFrameByteArray);
+            ksyAudio.size = flvFrameByteArray.length;
+
+            ksyAudio.dts = (int)ts;
+            ksyAudio.type = 12;
+//            audioSourceQueue.add(ksyAudio);
+
+            ksyRecordSender.sender(ksyAudio, FROM_AUDIO_DATA);
+//            ksyRecordSender.send(flvFrameByteArray, flvFrameByteArray.length);
 
             duration = System.currentTimeMillis() - oldTime;
-            stats.push(duration);
-            delay = stats.average();
+//            stats.push(duration);
+//            delay = stats.average();
+            delay = 23;
 
-            for (int i = 0; i < flvFrameByteArray.length; i++) {
+            /*for (int i = 0; i < flvFrameByteArray.length; i++) {
                 if (recordsum + i < buffer.length) {
                     if (recordsum == 0) {
                         byte[] flv = hexStringToBytes("464C56010400000009");
@@ -259,6 +286,8 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             } else {
                 recordsum += flvFrameByteArray.length;
             }
+            */
+
             isSpecialFrame = false;
         }
 
@@ -327,7 +356,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
     private String getSDPath() {
         File sdDir = null;
         boolean sdCardExist = Environment.getExternalStorageState()
-                .equals(android.os.Environment.MEDIA_MOUNTED); // 判断sd卡是否存在
+                .equals(Environment.MEDIA_MOUNTED); // 判断sd卡是否存在
         if (sdCardExist) {
             sdDir = Environment.getExternalStorageDirectory();// 获取跟目录
             return sdDir.toString();

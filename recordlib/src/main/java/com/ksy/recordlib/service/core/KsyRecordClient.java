@@ -155,10 +155,11 @@ public class KsyRecordClient implements KsyRecord {
     private void DealWithMediaRecorder() {
         Log.d(Constants.LOG_TAG, "DealWithMediaRecorder");
         // Video Source
-//        if (mVideoSource == null) {
-//            mVideoSource = new RecoderVideoSource(mCamera, mConfig, mSurfaceView, mRecordHandler, mContext);
-//            mVideoSource.start();
-//        }
+        if (mVideoSource == null) {
+            mVideoSource = new RecoderVideoSource(mCamera, mConfig, mSurfaceView, mRecordHandler, mContext);
+            mVideoSource.start();
+        }
+
         // Audio Source
         if (mAudioSource == null) {
             mAudioSource = new RecoderAudioSource(mConfig, mRecordHandler, mContext);

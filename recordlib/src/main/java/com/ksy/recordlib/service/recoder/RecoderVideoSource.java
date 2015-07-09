@@ -2,20 +2,19 @@ package com.ksy.recordlib.service.recoder;
 
 import android.content.Context;
 import android.hardware.Camera;
-import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
-import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.view.SurfaceView;
 
+import com.ksy.recordlib.service.core.KSYFlvData;
 import com.ksy.recordlib.service.core.KsyMediaSource;
 import com.ksy.recordlib.service.core.KsyRecordClient;
 import com.ksy.recordlib.service.core.KsyRecordClientConfig;
+import com.ksy.recordlib.service.core.KsyRecordSender;
 import com.ksy.recordlib.service.util.Constants;
-import com.ksy.recordlib.service.util.FileUtil;
 import com.ksy.recordlib.service.util.PrefUtil;
 
 import java.io.BufferedOutputStream;
@@ -27,7 +26,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 
 /**
  * Created by eflakemac on 15/6/19.
@@ -72,15 +70,23 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
     private int videoExtraSize = 9;
     private int last_sum = 0;
 
+    private static final int VIDEO_TAG= 3;
+    private static final int FROM_VIDEO_DATA = 6;
+    private KsyRecordSender ksyVideoSender;
+
 
     public RecoderVideoSource(Camera mCamera, KsyRecordClientConfig mConfig, SurfaceView mSurfaceView, KsyRecordClient.RecordHandler mRecordHandler, Context mContext) {
-        super(mConfig.getUrl());
+//        super(mConfig.getUrl(), VIDEO_TAG);
         this.mCamera = mCamera;
         this.mConfig = mConfig;
         this.mSurefaceView = mSurfaceView;
         mRecorder = new MediaRecorder();
         mHandler = mRecordHandler;
         this.mContext = mContext;
+
+        ksyVideoSender = KsyRecordSender.getRecordInstance();
+        ksyVideoSender.setRecorderData(mConfig.getUrl(), VIDEO_TAG);
+
     }
 
     @Override
@@ -95,6 +101,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
             e.printStackTrace();
             release();
         }
+        delay = 1000 / 20;
         mRecorder.setOutputFile(this.piple[1].getFileDescriptor());
         try {
             mRecorder.setOnInfoListener(this);
@@ -174,7 +181,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
             pl = PrefUtil.getMp4ConfigProfileLevel(mContext);
             pps = PrefUtil.getMp4ConfigPps(mContext);
             sps = PrefUtil.getMp4ConfigSps(mContext);
-            Log.d(Constants.LOG_TAG, "pl = " + pl + ",pps =" + pps + ",sps = " + sps);
+
             while (!Thread.interrupted()) {
                 // Begin parse video data
                 oldTime = System.currentTimeMillis();
@@ -182,13 +189,16 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
                 duration = System.currentTimeMillis() - oldTime;
                 stats.push(duration);
                 delay = stats.average();
+
             }
         }
         Log.d(Constants.LOG_TAG, "exiting video loop");
     }
 
+
     private void parseAndSend() {
         parseVideo();
+
     }
 
     private void parseVideo() {
@@ -251,6 +261,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
         }
     }
 
+
     private void fillArray(byte[] sps_pps, byte[] target) {
         for (int i = 0; i < target.length; i++) {
             sps_pps[last_sum + i] = target[i];
@@ -298,7 +309,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
                     flvFrameByteArray[11 + i] = (byte) 0;
                 } else {
                     if (type != FRAME_TYPE_SPS) {
-                        byte[] real_length = intToByteArrayFull(length - 4);
+                        byte[] real_length = intToByteArrayFull(length);
                         flvFrameByteArray[11 + i] = real_length[i - 5];
                     }
                 }
@@ -311,8 +322,20 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
         flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + length + videoExtraSize + 1] = allFrameLengthArray[1];
         flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + length + videoExtraSize + 2] = allFrameLengthArray[2];
         flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + length + videoExtraSize + 3] = allFrameLengthArray[3];
-//        sender.send(flvFrameByteArray, FRAME_DEFINE_HEAD_LENGTH + length + FRAME_DEFINE_FOOTER_LENGTH);
-        for (int i = 0; i < flvFrameByteArray.length; i++) {
+
+        //send video data
+//        sender.send(flvFrameByteArray, flvFrameByteArray.length);
+
+        //添加视频数据到队列
+        KSYFlvData ksyVideo = new KSYFlvData();
+        ksyVideo.byteBuffer = ByteBuffer.wrap(flvFrameByteArray);
+        ksyVideo.size = flvFrameByteArray.length;
+        ksyVideo.dts = (int)ts;
+        ksyVideo.type = 11;
+
+        ksyVideoSender.sender(ksyVideo, FROM_VIDEO_DATA);
+
+        /*for (int i = 0; i < flvFrameByteArray.length; i++) {
             if (recordsum + i < buffer.length) {
                 if (recordsum == 0) {
                     byte[] flv = hexStringToBytes("464C56010100000009");
@@ -350,7 +373,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
             recordsum += flvFrameByteArray.length + 9 + 4;
         } else {
             recordsum += flvFrameByteArray.length;
-        }
+        }*/
     }
 
     private byte[] longToByteArray(long ts) {
@@ -410,7 +433,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
     private String getSDPath() {
         File sdDir = null;
         boolean sdCardExist = Environment.getExternalStorageState()
-                .equals(android.os.Environment.MEDIA_MOUNTED); // 判断sd卡是否存在
+                .equals(Environment.MEDIA_MOUNTED); // 判断sd卡是否存在
         if (sdCardExist) {
             sdDir = Environment.getExternalStorageDirectory();// 获取跟目录
             return sdDir.toString();
