@@ -18,13 +18,9 @@ public class KsyRecordSender {
     private String mUrl;
     private boolean connected = false;
 
-//    private LinkedList<KSYFlvData> audioQueue;
-//    private LinkedList<KSYFlvData> videoQueue;
-
     private ArrayList<KSYFlvData> recordQueue ;
 
     private static final int FIRST_OPEN = 3;
-
     private static final int FROM_AUDIO = 8;
     private static final int FROM_VIDEO = 6;
 
@@ -66,31 +62,12 @@ public class KsyRecordSender {
 
         //3视频  0音频
         if (j == FIRST_OPEN) {
-            int o = _open();
-            Log.e("hello", "o ==" + o);
+            int c = _open();
+            Log.e("lixp", "c ==" + c);
         }
 
-        Log.e("hello", "KsyRecordSender  url =" + url + ">i=" + i + ">>>start j=" + j);
     }
 
-
-    /*public KsyRecordSender(String url, int j) {
-
-        recordQueue = new ArrayList<KSYFlvData>();
-
-        mUrl = url;
-
-        int i = _set_output_url(url);
-
-        //3视频  0音频
-        if (j == FIRST_OPEN) {
-            int o = _open();
-            Log.e("lixp", "o ==" + o);
-        }
-
-        Log.e("lixp", "KsyRecordSender  url =" + url + ">i=" + i + ">>>start j=" + j);
-    }
-*/
 
     public void start() throws IOException {
 
@@ -111,7 +88,7 @@ public class KsyRecordSender {
     }
 
 
-    //TODO 重新连接
+    //重新连接
     private void reconnect() throws Exception {
 
         if (connected) {
@@ -135,16 +112,6 @@ public class KsyRecordSender {
     }
 
 
-
-    /*public synchronized void send(byte[] buffer, int size) {
-
-        Log.e("lixp", "buffer=" + buffer.length + ">>>size=" + size);
-
-        int w = _write(buffer, size);
-
-    }*/
-
-
     //send data to server
     public synchronized void sender(KSYFlvData ksyFlvData, int k) {
 
@@ -166,6 +133,7 @@ public class KsyRecordSender {
         }
 
         int time = ksyFlvData.dts;
+
         Log.e("lixp", "k==" + k + ">>>time=" + time + "<<<>>>frame_video==" + frame_video + ">>>frame_audio=" + frame_audio);
 
         // add video data
@@ -216,5 +184,6 @@ public class KsyRecordSender {
     private native int _close();
 
     private native int _write(byte[] buffer, int size);
+
 }
 

@@ -59,6 +59,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
     private boolean isWriteFlvInSdcard = false;
     private byte[] special_content;
     private boolean isSpecialFrame = true;
+    private byte aac_flag = (byte)0xA2;
 
     private static final int FROM_AUDIO_DATA = 8;
     private KsyRecordSender ksyRecordSender;
@@ -86,6 +87,19 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
         mRecorder.setAudioSamplingRate(mConfig.getAudioSampleRate());
         mRecorder.setAudioEncodingBitRate(mConfig.getAudioBitRate());
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+
+        delay = 1024 * 1000 / mConfig.getAudioSampleRate();
+
+        if(mConfig.getAudioSampleRate()==44100) {
+            aac_flag = (byte) (aac_flag | (byte) 0x0C);
+        }
+        else if(mConfig.getAudioSampleRate()==22050) {
+            aac_flag = (byte) (aac_flag | (byte) 0x08);
+        }
+        else if(mConfig.getAudioSampleRate()==11025) {
+            aac_flag = (byte) (aac_flag | (byte) 0x04);
+        }
+
         try {
             this.piple = ParcelFileDescriptor.createPipe();
         } catch (IOException e) {
@@ -205,7 +219,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             for (int i = 0; i < frame_length + videoExtraSize; i++) {
                 if (i < videoExtraSize) {
                     if (i == 0) {
-                        flvFrameByteArray[11 + i] = (byte) 0xAF;
+                        flvFrameByteArray[11 + i] = aac_flag;//(byte) 0xAF;
                     } else if (i == 1) {
                         if (isSpecialFrame) {
                             flvFrameByteArray[11 + i] = (byte) 0x00;
@@ -235,18 +249,15 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             KSYFlvData ksyAudio = new KSYFlvData();
             ksyAudio.byteBuffer = ByteBuffer.wrap(flvFrameByteArray);
             ksyAudio.size = flvFrameByteArray.length;
-
             ksyAudio.dts = (int)ts;
             ksyAudio.type = 12;
-//            audioSourceQueue.add(ksyAudio);
 
             ksyRecordSender.sender(ksyAudio, FROM_AUDIO_DATA);
-//            ksyRecordSender.send(flvFrameByteArray, flvFrameByteArray.length);
 
             duration = System.currentTimeMillis() - oldTime;
 //            stats.push(duration);
 //            delay = stats.average();
-            delay = 23;
+//            delay = 23;
 
             /*for (int i = 0; i < flvFrameByteArray.length; i++) {
                 if (recordsum + i < buffer.length) {
