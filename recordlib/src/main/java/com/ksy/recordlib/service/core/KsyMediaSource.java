@@ -25,7 +25,7 @@ public abstract class KsyMediaSource implements Runnable {
     /*protected KsyMediaSource(String url, int i) {
         Log.e("lixp", "KsyMediaSource  27  ....");
 
-//        KsyRecordSender.getInstance().setmUrl(url, i);
+//        KsyRecordSender.getInstance().setUrl(url, i);
 
         sender = new KsyRecordSender(url, i);
 

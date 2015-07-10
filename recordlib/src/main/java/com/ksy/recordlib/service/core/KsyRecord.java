@@ -17,21 +17,21 @@ public interface KsyRecord {
 
     void release();
 
-    void setCameraType(int cameraType);
-
-    void setVoiceType(int voiceType);
-
-    void setAudioEncodeConfig(int audioSampleRate, int audioBitRate);
-
-    void setVideoEncodeConfig(int videoFrameRate,int videoBitRate);
-
-    void setVideoResolution(int vResolutionType);
-
-    void setUrl(String url);
+//    void setCameraType(int cameraType);
+//
+//    void setVoiceType(int voiceType);
+//
+//    void setAudioEncodeConfig(int audioSampleRate, int audioBitRate);
+//
+//    void setVideoEncodeConfig(int videoFrameRate,int videoBitRate);
+//
+//    void setVideoResolution(int vResolutionType);
+//
+//    void setUrl(String url);
 
     int getNewtWorkStatusType();
 
-    void setDropFrameFrequency(int frequency);
+//    void setDropFrameFrequency(int frequency);
 
     void setDisplayPreview(SurfaceView surfaceView);
 

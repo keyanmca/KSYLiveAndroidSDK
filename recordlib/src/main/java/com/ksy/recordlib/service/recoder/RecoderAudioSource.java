@@ -59,7 +59,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
     private boolean isWriteFlvInSdcard = false;
     private byte[] special_content;
     private boolean isSpecialFrame = true;
-    private byte aac_flag = (byte)0xA2;
+    private byte aac_flag = (byte) 0xA2;
 
     private static final int FROM_AUDIO_DATA = 8;
     private KsyRecordSender ksyRecordSender;
@@ -86,17 +86,15 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
         mRecorder.setAudioChannels(1);
         mRecorder.setAudioSamplingRate(mConfig.getAudioSampleRate());
         mRecorder.setAudioEncodingBitRate(mConfig.getAudioBitRate());
-        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mRecorder.setAudioEncoder(mConfig.getAudioEncorder());
 
         delay = 1024 * 1000 / mConfig.getAudioSampleRate();
 
-        if(mConfig.getAudioSampleRate()==44100) {
+        if (mConfig.getAudioSampleRate() == 44100) {
             aac_flag = (byte) (aac_flag | (byte) 0x0C);
-        }
-        else if(mConfig.getAudioSampleRate()==22050) {
+        } else if (mConfig.getAudioSampleRate() == 22050) {
             aac_flag = (byte) (aac_flag | (byte) 0x08);
-        }
-        else if(mConfig.getAudioSampleRate()==11025) {
+        } else if (mConfig.getAudioSampleRate() == 11025) {
             aac_flag = (byte) (aac_flag | (byte) 0x04);
         }
 
@@ -249,7 +247,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             KSYFlvData ksyAudio = new KSYFlvData();
             ksyAudio.byteBuffer = ByteBuffer.wrap(flvFrameByteArray);
             ksyAudio.size = flvFrameByteArray.length;
-            ksyAudio.dts = (int)ts;
+            ksyAudio.dts = (int) ts;
             ksyAudio.type = 12;
 
             ksyRecordSender.sender(ksyAudio, FROM_AUDIO_DATA);

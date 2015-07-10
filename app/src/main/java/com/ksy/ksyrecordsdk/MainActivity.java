@@ -1,5 +1,6 @@
 package com.ksy.ksyrecordsdk;
 
+import android.media.CamcorderProfile;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -14,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.ksy.recordlib.service.core.KsyRecordClient;
+import com.ksy.recordlib.service.core.KsyRecordClientConfig;
 import com.ksy.recordlib.service.exception.KsyRecordException;
 import com.ksy.recordlib.service.util.Constants;
 
@@ -34,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         Log.d(Constants.LOG_TAG, "onCreate");
         setContentView(R.layout.activity_main);
         initWidget();
-        setUpRecord();
+        setupRecord();
     }
 
     private void initWidget() {
@@ -68,14 +70,11 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     }
 
 
-    private void setUpRecord() {
+    private void setupRecord() {
         client = KsyRecordClient.getInstance(getApplicationContext());
-        client.setCameraType(Constants.CAMERA_TYPE_BACK);
-        client.setVoiceType(Constants.VOICE_TYPE_MIC);
-        client.setAudioEncodeConfig(Constants.AUDIO_SAMPLE_RATE_DEFAULT, Constants.AUDIO_BIT_RATE_DEFAULT);
-        client.setVideoEncodeConfig(Constants.VIDEO_FRAME_RATE_DEFAULT, Constants.VIDEO_BIT_RATE_DEFAULT);
-        client.setVideoResolution(Constants.QUALITY_480P);
-        client.setUrl(Constants.URL_DEFAULT);
+        KsyRecordClientConfig.Builder builder = new KsyRecordClientConfig.Builder();
+        builder.setVideoProfile(CamcorderProfile.QUALITY_480P).setUrl(Constants.URL_DEFAULT);
+        client.setConfig(builder.build());
         client.setDisplayPreview(mSurfaceView);
         // To do
 //        client.setDropFrameFrequency();

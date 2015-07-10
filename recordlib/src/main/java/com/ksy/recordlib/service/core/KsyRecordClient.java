@@ -47,7 +47,6 @@ public class KsyRecordClient implements KsyRecord {
     public static KsyRecordClient getInstance(Context context) {
         if (mInstance == null) {
             mInstance = new KsyRecordClient(context);
-            mConfig = new KsyRecordClientConfig();
         }
         return mInstance;
     }
@@ -93,11 +92,14 @@ public class KsyRecordClient implements KsyRecord {
         try {
             mKsyRtmpFlvClient.start();
         } catch (IOException e) {
-            throw new KsyRecordException("Start muxer failed");
+            throw new KsyRecordException("start muxer failed");
         }
     }
 
     private boolean checkConfig() throws KsyRecordException {
+        if (mConfig == null) {
+            throw new KsyRecordException("should set KsyRecordConfig first");
+        }
         return mConfig.validateParam();
     }
 
@@ -123,18 +125,11 @@ public class KsyRecordClient implements KsyRecord {
                     mSurfaceView.getWidth(), mSurfaceView.getHeight());
             parameters.setPreviewSize(optimalSize.width, optimalSize.height);
             mCamera.setParameters(parameters);
-
-            if (mConfig.getDisplayType() == Constants.DISPLAY_SURFACE_VIEW) {
+            if (needPreview) {
                 try {
-                    if (needPreview) {
+                    if (mSurfaceView != null) {
                         mCamera.setPreviewDisplay(mSurfaceView.getHolder());
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                try {
-                    if (needPreview) {
+                    } else if (mTextureView != null) {
                         mCamera.setPreviewTexture(mTextureView.getSurfaceTexture());
                     }
                 } catch (IOException e) {
@@ -235,57 +230,26 @@ public class KsyRecordClient implements KsyRecord {
     }
 
     @Override
-    public void setCameraType(int cameraType) {
-        mConfig.setCameraType(cameraType);
-    }
-
-    @Override
-    public void setVoiceType(int voiceType) {
-        mConfig.setVoiceType(voiceType);
-    }
-
-    @Override
-    public void setAudioEncodeConfig(int audioSampleRate, int audioBitRate) {
-        mConfig.setAudioSampleRate(audioSampleRate);
-        mConfig.setAudioBitRate(audioBitRate);
-    }
-
-    @Override
-    public void setVideoEncodeConfig(int videoFrameRate, int videoBitRate) {
-        mConfig.setVideoBitRate(videoBitRate);
-        mConfig.setVideoFrameRate(videoFrameRate);
-    }
-
-    @Override
-    public void setVideoResolution(int vResolutionType) {
-        mConfig.setVideoProfile(vResolutionType);
-    }
-
-    @Override
-    public void setUrl(String url) {
-        mConfig.setUrl(url);
-    }
-
-    @Override
     public int getNewtWorkStatusType() {
         return 0;
     }
 
     @Override
-    public void setDropFrameFrequency(int frequency) {
-        mConfig.setDropFrameFrequency(frequency);
-    }
-
-    @Override
     public void setDisplayPreview(SurfaceView surfaceView) {
+        if (mConfig == null) {
+            throw new IllegalStateException("should set KsyRecordConfig before invoke setDisplayPreview");
+        }
         this.mSurfaceView = surfaceView;
-        mConfig.setDisplayType(Constants.DISPLAY_SURFACE_VIEW);
+        this.mTextureView = null;
     }
 
     @Override
     public void setDisplayPreview(TextureView textureView) {
+        if (mConfig == null) {
+            throw new IllegalStateException("should set KsyRecordConfig before invoke setDisplayPreview");
+        }
         this.mTextureView = textureView;
-        mConfig.setDisplayType(Constants.DISPLAY_TEXTURE_VIEW);
+        this.mSurfaceView = null;
     }
 
     public class RecordHandler extends Handler {
@@ -306,4 +270,7 @@ public class KsyRecordClient implements KsyRecord {
         }
     }
 
+    public static void setConfig(KsyRecordClientConfig mConfig) {
+        KsyRecordClient.mConfig = mConfig;
+    }
 }

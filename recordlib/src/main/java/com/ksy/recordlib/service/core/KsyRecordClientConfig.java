@@ -5,6 +5,7 @@ import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 
 import com.ksy.recordlib.service.exception.KsyRecordException;
+import com.ksy.recordlib.service.util.Constants;
 
 /**
  * Created by eflakemac on 15/6/17.
@@ -14,56 +15,35 @@ public class KsyRecordClientConfig {
     public static int MEDIA_TEMP = 1;
     public static int MEDIA_SETP = 2;
 
-    private int mCameraType;
-    private int mVoiceType;
-    private int mAudioSampleRate;
-    private int mAudioBitRate;
-    private int mAudioEncorder = MediaRecorder.AudioEncoder.AAC;
-    private int mVideoFrameRate;
-    private int mVideoBitRate;
-    private int mDropFrameFrequency;
-    private int mVideoWidth;
-    private int mVideoHeigh;
-    private int mDisplayType;
-    private int mVideoEncorder = MediaRecorder.VideoEncoder.H264;
-    private int mVideoProfile = -1;
+    int mCameraType;
+    int mVoiceType;
+    int mAudioSampleRate;
+    int mAudioBitRate;
+    int mAudioEncorder;
+    int mVideoFrameRate;
+    int mVideoBitRate;
+    int mDropFrameFrequency;
+    int mVideoWidth;
+    int mVideoHeigh;
+    int mVideoEncorder;
+    int mVideoProfile;
 
-    private String mUrl;
+    String mUrl;
 
-    public void setCameraType(int CameraType) {
-        this.mCameraType = CameraType;
-    }
-
-    public void setVoiceType(int VoiceType) {
-        this.mVoiceType = VoiceType;
-    }
-
-    public void setAudioSampleRate(int AudioSampleRate) {
-        this.mAudioSampleRate = AudioSampleRate;
-    }
-
-    public void setAudioBitRate(int AudioBitRate) {
-        this.mAudioBitRate = AudioBitRate;
-    }
-
-    public void setVideoFrameRate(int VideoFrameRate) {
-        this.mVideoFrameRate = VideoFrameRate;
-    }
-
-    public void setVideoBitRate(int VideoBitRate) {
-        this.mVideoBitRate = VideoBitRate;
-    }
-
-    public void setDropFrameFrequency(int DropFrameFrequency) {
-        this.mDropFrameFrequency = DropFrameFrequency;
-    }
-
-    public void setDisplayType(int DisplayType) {
-        this.mDisplayType = DisplayType;
-    }
-
-    public void setUrl(String Url) {
-        this.mUrl = Url;
+    public KsyRecordClientConfig(Builder builder) {
+        mCameraType = builder.mCameraType;
+        mVoiceType = builder.mVoiceType;
+        mAudioSampleRate = builder.mAudioSampleRate;
+        mAudioBitRate = builder.mAudioBitRate;
+        mAudioEncorder = builder.mAudioEncorder;
+        mVideoFrameRate = builder.mVideoFrameRate;
+        mVideoBitRate = builder.mVideoBitRate;
+        mDropFrameFrequency = builder.mDropFrameFrequency;
+        mVideoWidth = builder.mVideoWidth;
+        mVideoHeigh = builder.mVideoHeigh;
+        mVideoEncorder = builder.mVideoEncorder;
+        mVideoProfile = builder.mVideoProfile;
+        mUrl = builder.mUrl;
     }
 
     public int getCameraType() {
@@ -82,6 +62,10 @@ public class KsyRecordClientConfig {
         return mAudioBitRate;
     }
 
+    public int getAudioEncorder() {
+        return mAudioEncorder;
+    }
+
     public int getVideoFrameRate() {
         return mVideoFrameRate;
     }
@@ -94,32 +78,20 @@ public class KsyRecordClientConfig {
         return mDropFrameFrequency;
     }
 
-    public int getDisplayType() {
-        return mDisplayType;
-    }
-
-    public int getmVideoWidth() {
+    public int getVideoWidth() {
         return mVideoWidth;
     }
 
-    public void setmVideoWidth(int mVideoWidth) {
-        this.mVideoWidth = mVideoWidth;
-    }
-
-    public int getmVideoHeigh() {
+    public int getVideoHeigh() {
         return mVideoHeigh;
     }
 
-    public void setmVideoHeigh(int mVideoHeigh) {
-        this.mVideoHeigh = mVideoHeigh;
+    public int getVideoEncorder() {
+        return mVideoEncorder;
     }
 
-    public int getmAudioEncorder() {
-        return mAudioEncorder;
-    }
-
-    public void setmAudioEncorder(int mAudioEncorder) {
-        this.mAudioEncorder = mAudioEncorder;
+    public int getVideoProfile() {
+        return mVideoProfile;
     }
 
     public String getUrl() {
@@ -177,6 +149,144 @@ public class KsyRecordClientConfig {
     public void setVideoProfile(int profileID) {
         this.mVideoProfile = profileID;
 
+    }
+
+    public static class Builder {
+
+        private int mCameraType = Constants.CAMERA_TYPE_BACK;
+        private int mVoiceType = Constants.VOICE_TYPE_MIC;
+        private int mAudioSampleRate = 44100;
+        private int mAudioBitRate = 32000;
+        private int mAudioEncorder = MediaRecorder.AudioEncoder.AAC;
+        private int mVideoFrameRate = 30;
+        private int mVideoBitRate = 5000000;
+        private int mDropFrameFrequency = 0;
+        private int mVideoWidth;
+        private int mVideoHeigh;
+        private int mVideoEncorder = MediaRecorder.VideoEncoder.H264;
+        private int mVideoProfile = -1;
+        private String mUrl;
+
+        public KsyRecordClientConfig build() {
+            return new KsyRecordClientConfig(this);
+        }
+
+        public String getmUrl() {
+            return mUrl;
+        }
+
+        public Builder setUrl(String mUrl) {
+            this.mUrl = mUrl;
+            return this;
+        }
+
+        public int getCameraType() {
+            return mCameraType;
+        }
+
+        public Builder setCameraType(int mCameraType) {
+            this.mCameraType = mCameraType;
+            return this;
+        }
+
+        public int getVoiceType() {
+            return mVoiceType;
+        }
+
+        public Builder setVoiceType(int mVoiceType) {
+            this.mVoiceType = mVoiceType;
+            return this;
+        }
+
+        public int getAudioSampleRate() {
+            return mAudioSampleRate;
+        }
+
+        public Builder setAudioSampleRate(int mAudioSampleRate) {
+            this.mAudioSampleRate = mAudioSampleRate;
+            return this;
+        }
+
+        public int getAudioBitRate() {
+            return mAudioBitRate;
+        }
+
+        public Builder setAudioBitRate(int mAudioBitRate) {
+            this.mAudioBitRate = mAudioBitRate;
+            return this;
+        }
+
+        public int getAudioEncorder() {
+            return mAudioEncorder;
+        }
+
+        public Builder setAudioEncorder(int mAudioEncorder) {
+            this.mAudioEncorder = mAudioEncorder;
+            return this;
+        }
+
+        public int getVideoFrameRate() {
+            return mVideoFrameRate;
+        }
+
+        public Builder setVideoFrameRate(int mVideoFrameRate) {
+            this.mVideoFrameRate = mVideoFrameRate;
+            return this;
+        }
+
+        public int getVideoBitRate() {
+            return mVideoBitRate;
+        }
+
+        public Builder setVideoBitRate(int mVideoBitRate) {
+            this.mVideoBitRate = mVideoBitRate;
+            return this;
+        }
+
+        public int getDropFrameFrequency() {
+            return mDropFrameFrequency;
+        }
+
+        public Builder setDropFrameFrequency(int mDropFrameFrequency) {
+            this.mDropFrameFrequency = mDropFrameFrequency;
+            return this;
+        }
+
+        public int getVideoWidth() {
+            return mVideoWidth;
+        }
+
+        public Builder setVideoWidth(int mVideoWidth) {
+            this.mVideoWidth = mVideoWidth;
+            return this;
+        }
+
+        public int getVideoHeigh() {
+            return mVideoHeigh;
+        }
+
+        public Builder setVideoHeigh(int mVideoHeigh) {
+            this.mVideoHeigh = mVideoHeigh;
+            return this;
+        }
+
+        public int getVideoEncorder() {
+            return mVideoEncorder;
+        }
+
+        public Builder setVideoEncorder(int mVideoEncorder) {
+            this.mVideoEncorder = mVideoEncorder;
+            return this;
+        }
+
+        public int getVideoProfile() {
+            return mVideoProfile;
+        }
+
+        public Builder setVideoProfile(int mVideoProfile) {
+            this.mVideoProfile = mVideoProfile;
+            return this;
+        }
     }
 
 
