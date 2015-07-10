@@ -15,11 +15,7 @@ public class Constants {
     public static final int AUDIO_BIT_RATE_DEFAULT = 32000;
     public static final int VIDEO_FRAME_RATE_DEFAULT = 20;
     public static final int VIDEO_BIT_RATE_DEFAULT = 5000000;
-    public static final int QUALITY_240P = 7;
-    public static final int QUALITY_480P = 4;
-    public static final int QUALITY_720P = 5;
-    public static final int QUALITY_1080P = 6;
-//    public static final String URL_DEFAULT = "rtmp://192.168.135.185/myTestLive/eflake";
+    //    public static final String URL_DEFAULT = "rtmp://192.168.135.185/myTestLive/eflake";
     public static final String URL_DEFAULT = "rtmp://192.168.135.185/myTestLive/67854366";
     public static final int ENCODE_MODE_MEDIA_RECORDER = 0;
     public static final int ENCODE_MODE_MEDIA_CODEC = 1;

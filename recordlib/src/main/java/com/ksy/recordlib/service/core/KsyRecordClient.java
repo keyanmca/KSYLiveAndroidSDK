@@ -67,7 +67,6 @@ public class KsyRecordClient implements KsyRecord {
             } else {
                 startRecordStep();
             }
-
         } else {
             throw new KsyRecordException("Check KsyRecordClient Configuration, param should be correct");
         }
@@ -105,7 +104,18 @@ public class KsyRecordClient implements KsyRecord {
 
     private void setUpCamera(boolean needPreview) {
         if (mCamera == null) {
-            mCamera = Camera.open();
+            int numberOfCameras = Camera.getNumberOfCameras();
+            if (numberOfCameras > 0) {
+                Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+                for (int i = 0; i < numberOfCameras; i++) {
+                    Camera.getCameraInfo(i, cameraInfo);
+                    if (cameraInfo.facing == mConfig.getCameraType()) {
+                        mCamera = Camera.open(i);
+                    }
+                }
+            } else {
+                mCamera = Camera.open();
+            }
             mCamera.setDisplayOrientation(90);
             Camera.Parameters parameters = mCamera.getParameters();
             List<Camera.Size> mSupportedPreviewSizes = parameters.getSupportedPreviewSizes();
@@ -248,7 +258,7 @@ public class KsyRecordClient implements KsyRecord {
 
     @Override
     public void setVideoResolution(int vResolutionType) {
-        mConfig.setVideoResolutionType(vResolutionType);
+        mConfig.setVideoProfile(vResolutionType);
     }
 
     @Override

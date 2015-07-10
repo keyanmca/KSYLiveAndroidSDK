@@ -92,9 +92,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
     @Override
     public void prepare() {
         mRecorder.setCamera(mCamera);
-        mRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+        mConfig.configMediaRecorder(mRecorder, KsyRecordClientConfig.MEDIA_SETP);
         try {
             this.piple = ParcelFileDescriptor.createPipe();
         } catch (IOException e) {
