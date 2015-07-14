@@ -124,6 +124,10 @@ public class KsyRecordClient implements KsyRecord {
             Camera.Size optimalSize = CameraHelper.getOptimalPreviewSize(mSupportedPreviewSizes,
                     mSurfaceView.getWidth(), mSurfaceView.getHeight());
             parameters.setPreviewSize(optimalSize.width, optimalSize.height);
+            if (parameters.getSupportedFocusModes().contains(
+                    Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+            }
             mCamera.setParameters(parameters);
             if (needPreview) {
                 try {
