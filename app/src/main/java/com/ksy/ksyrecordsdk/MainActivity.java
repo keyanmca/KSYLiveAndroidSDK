@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private void setupRecord() {
         client = KsyRecordClient.getInstance(getApplicationContext());
         KsyRecordClientConfig.Builder builder = new KsyRecordClientConfig.Builder();
-        builder.setVideoProfile(CamcorderProfile.QUALITY_480P).setUrl(Constants.URL_DEFAULT);
+        builder.setVideoProfile(CamcorderProfile.QUALITY_720P).setUrl(Constants.URL_DEFAULT);
         client.setConfig(builder.build());
         client.setDisplayPreview(mSurfaceView);
         // To do

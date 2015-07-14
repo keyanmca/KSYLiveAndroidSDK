@@ -136,8 +136,9 @@ public class KsyRecordClient implements KsyRecord {
                     e.printStackTrace();
                 }
             }
-            mCamera.unlock();
         }
+        // Here we reuse camera, just unlock it
+        mCamera.unlock();
     }
 
     private void setUpEncoder() {
@@ -197,17 +198,19 @@ public class KsyRecordClient implements KsyRecord {
     public void stopRecord() {
         if (mVideoSource != null) {
             mVideoSource.stop();
-            mCamera = null;
             mVideoSource = null;
         }
         if (mVideoTempSource != null) {
             mVideoTempSource.stop();
-            mCamera = null;
             mVideoTempSource = null;
         }
         if (mAudioSource != null) {
             mAudioSource.stop();
             mAudioSource = null;
+        }
+        if (mCamera != null) {
+            mCamera.release();
+            mCamera = null;
         }
     }
 
@@ -226,6 +229,10 @@ public class KsyRecordClient implements KsyRecord {
         if (mAudioSource != null) {
             mAudioSource.release();
             mAudioSource = null;
+        }
+        if (mCamera != null) {
+            mCamera.release();
+            mCamera = null;
         }
     }
 
@@ -259,7 +266,13 @@ public class KsyRecordClient implements KsyRecord {
             switch (msg.what) {
                 case Constants.MESSAGE_MP4CONFIG_FINISH:
                     Log.d(Constants.LOG_TAG, "back to continue");
-                    release();
+                    //release();
+                    // just release tem
+                    if (mVideoTempSource != null) {
+                        // already release
+                        mVideoTempSource.release();
+                        mVideoTempSource = null;
+                    }
                     startRecordStep();
                     break;
                 case Constants.MESSAGE_MP4CONFIG_START_PREVIEW:

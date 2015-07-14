@@ -130,13 +130,17 @@ public class RecoderVideoTempSource extends KsyMediaSource implements MediaRecor
     public void release() {
         mRunning = false;
         releaseRecorder();
-        releaseCamera();
+        reconnectCamera();
     }
 
-    private void releaseCamera() {
+    private void reconnectCamera() {
         if (mCamera != null) {
-            mCamera.release();
-            mCamera = null;
+            try {
+                mCamera.reconnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mCamera.lock();
         }
     }
 

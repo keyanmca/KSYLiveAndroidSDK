@@ -156,10 +156,13 @@ public class KsyRecordClientConfig {
         private int mCameraType = Constants.CAMERA_TYPE_BACK;
         private int mVoiceType = Constants.VOICE_TYPE_MIC;
         private int mAudioSampleRate = 44100;
-        private int mAudioBitRate = 32000;
+        // 32 KB, 48kb, 64 KB
+        private int mAudioBitRate = 32 * 1000;
         private int mAudioEncorder = MediaRecorder.AudioEncoder.AAC;
-        private int mVideoFrameRate = 30;
-        private int mVideoBitRate = 5000000;
+        // 10, 15,20,25
+        private int mVideoFrameRate = 20;
+        // 250, 500,750,1000
+        private int mVideoBitRate = 750 * 1000;
         private int mDropFrameFrequency = 0;
         private int mVideoWidth;
         private int mVideoHeigh;

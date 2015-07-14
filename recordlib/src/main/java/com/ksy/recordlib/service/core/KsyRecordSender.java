@@ -6,6 +6,8 @@ import com.ksy.recordlib.service.util.Constants;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * Created by eflakemac on 15/6/26.
@@ -142,7 +144,7 @@ public class KsyRecordSender {
         //send
         if (frame_video > 1 && frame_audio > 1) {
             //数据排序
-            /*Collections.sort(recordQueue, new Comparator<KSYFlvData>() {
+            Collections.sort(recordQueue, new Comparator<KSYFlvData>() {
 
                 @Override
                 public int compare(KSYFlvData lhs, KSYFlvData rhs) {
@@ -151,7 +153,7 @@ public class KsyRecordSender {
 
                     return lhs.dts - rhs.dts;
                 }
-            });*/
+            });
 
 
             while (frame_video > 1 && frame_audio > 1) {
