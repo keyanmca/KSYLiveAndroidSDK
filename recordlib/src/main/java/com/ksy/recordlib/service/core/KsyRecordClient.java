@@ -35,12 +35,16 @@ public class KsyRecordClient implements KsyRecord {
     private KsyMediaSource mAudioSource;
     private KsyMediaSource mVideoTempSource;
 
+    private KsyRecordSender ksyRecordSender;
+
     private KsyRecordClient() {
     }
 
     private KsyRecordClient(Context context) {
         this.mContext = context;
         mRecordHandler = new RecordHandler();
+
+        ksyRecordSender = KsyRecordSender.getRecordInstance();
     }
 
 
@@ -55,10 +59,17 @@ public class KsyRecordClient implements KsyRecord {
     *
     * Ks3 Record API
     * */
-
     @Override
     public void startRecord() throws KsyRecordException {
         mEncodeMode = judgeEncodeMode(mContext);
+
+        try {
+            ksyRecordSender.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e(Constants.LOG_TAG, "startRecord() : e =" + e);
+        }
+
         if (checkConfig()) {
             // Here we begin
             if (mEncodeMode == Constants.ENCODE_MODE_MEDIA_RECORDER) {
@@ -216,6 +227,8 @@ public class KsyRecordClient implements KsyRecord {
             mCamera.release();
             mCamera = null;
         }
+
+        ksyRecordSender.disconnect();
     }
 
     @Override
