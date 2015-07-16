@@ -12,8 +12,8 @@ import com.ksy.recordlib.service.util.Constants;
  */
 public class KsyRecordClientConfig {
 
-    public static int MEDIA_TEMP = 1;
-    public static int MEDIA_SETP = 2;
+    public static final int MEDIA_TEMP = 1;
+    public static final int MEDIA_SETP = 2;
 
     int mCameraType;
     int mVoiceType;
@@ -152,17 +152,13 @@ public class KsyRecordClientConfig {
     }
 
     public static class Builder {
-
-        private int mCameraType = Constants.CAMERA_TYPE_BACK;
-        private int mVoiceType = Constants.VOICE_TYPE_MIC;
-        private int mAudioSampleRate = 44100;
-        // 32 KB, 48kb, 64 KB
-        private int mAudioBitRate = 32 * 1000;
+        private int mCameraType = Constants.CONFIG_CAMERA_TYPE_BACK;
+        private int mVoiceType = Constants.CONFIG_VOICE_TYPE_MIC;
+        private int mAudioSampleRate = Constants.CONFIG_AUDIO_SAMPLERATE_44100;
+        private int mAudioBitRate = Constants.CONFIG_AUDIO_BITRATE_32K;
         private int mAudioEncorder = MediaRecorder.AudioEncoder.AAC;
-        // 10, 15,20,25
-        private int mVideoFrameRate = 20;
-        // 250, 500,750,1000
-        private int mVideoBitRate = 750 * 1000;
+        private int mVideoFrameRate = Constants.CONFIG_VIDEO_FRAME_RATE_30;
+        private int mVideoBitRate = Constants.CONFIG_VIDEO_BITRATE_750K;
         private int mDropFrameFrequency = 0;
         private int mVideoWidth;
         private int mVideoHeigh;
