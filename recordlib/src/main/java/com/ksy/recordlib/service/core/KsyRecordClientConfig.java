@@ -36,14 +36,38 @@ public class KsyRecordClientConfig {
         mAudioSampleRate = builder.mAudioSampleRate;
         mAudioBitRate = builder.mAudioBitRate;
         mAudioEncorder = builder.mAudioEncorder;
-        mVideoFrameRate = builder.mVideoFrameRate;
-        mVideoBitRate = builder.mVideoBitRate;
         mDropFrameFrequency = builder.mDropFrameFrequency;
-        mVideoWidth = builder.mVideoWidth;
-        mVideoHeigh = builder.mVideoHeigh;
         mVideoEncorder = builder.mVideoEncorder;
         mVideoProfile = builder.mVideoProfile;
         mUrl = builder.mUrl;
+        if (mVideoProfile >= 0) {
+            int cameraId = -1;
+            int numberOfCameras = Camera.getNumberOfCameras();
+            if (numberOfCameras > 0) {
+                Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+                for (int i = 0; i < numberOfCameras; i++) {
+                    Camera.getCameraInfo(i, cameraInfo);
+                    if (cameraInfo.facing == mCameraType) {
+                        cameraId = i;
+                        break;
+                    }
+                }
+            }
+            if (cameraId < 0) {
+                throw new IllegalArgumentException("camera unsupported quality level");
+            }
+            if (CamcorderProfile.hasProfile(cameraId, mVideoProfile)) {
+                CamcorderProfile camcorderProfile = CamcorderProfile.get(cameraId, mVideoProfile);
+                this.mVideoFrameRate = camcorderProfile.videoFrameRate;
+                this.mVideoBitRate = camcorderProfile.videoBitRate;
+                this.mVideoWidth = camcorderProfile.videoFrameWidth;
+                this.mVideoHeigh = camcorderProfile.videoFrameHeight;
+            }
+        }
+        mVideoFrameRate = builder.mVideoFrameRate;
+        mVideoBitRate = builder.mVideoBitRate;
+        mVideoWidth = builder.mVideoWidth > 0 ? builder.mVideoWidth : mVideoWidth;
+        mVideoHeigh = builder.mVideoHeigh > 0 ? builder.mVideoHeigh : mVideoHeigh;
     }
 
     public int getCameraType() {
@@ -98,6 +122,71 @@ public class KsyRecordClientConfig {
         return mUrl;
     }
 
+    public KsyRecordClientConfig setmCameraType(int mCameraType) {
+        this.mCameraType = mCameraType;
+        return this;
+    }
+
+    public KsyRecordClientConfig setmVoiceType(int mVoiceType) {
+        this.mVoiceType = mVoiceType;
+        return this;
+    }
+
+    public KsyRecordClientConfig setmAudioSampleRate(int mAudioSampleRate) {
+        this.mAudioSampleRate = mAudioSampleRate;
+        return this;
+    }
+
+    public KsyRecordClientConfig setmAudioBitRate(int mAudioBitRate) {
+        this.mAudioBitRate = mAudioBitRate;
+        return this;
+    }
+
+    public KsyRecordClientConfig setmAudioEncorder(int mAudioEncorder) {
+        this.mAudioEncorder = mAudioEncorder;
+        return this;
+    }
+
+    public KsyRecordClientConfig setmVideoFrameRate(int mVideoFrameRate) {
+        this.mVideoFrameRate = mVideoFrameRate;
+        return this;
+    }
+
+    public KsyRecordClientConfig setmVideoBitRate(int mVideoBitRate) {
+        this.mVideoBitRate = mVideoBitRate;
+        return this;
+    }
+
+    public KsyRecordClientConfig setmDropFrameFrequency(int mDropFrameFrequency) {
+        this.mDropFrameFrequency = mDropFrameFrequency;
+        return this;
+    }
+
+    public KsyRecordClientConfig setmVideoWidth(int mVideoWidth) {
+        this.mVideoWidth = mVideoWidth;
+        return this;
+    }
+
+    public KsyRecordClientConfig setmVideoHeigh(int mVideoHeigh) {
+        this.mVideoHeigh = mVideoHeigh;
+        return this;
+    }
+
+    public KsyRecordClientConfig setmVideoEncorder(int mVideoEncorder) {
+        this.mVideoEncorder = mVideoEncorder;
+        return this;
+    }
+
+    public KsyRecordClientConfig setmVideoProfile(int mVideoProfile) {
+        this.mVideoProfile = mVideoProfile;
+        return this;
+    }
+
+    public KsyRecordClientConfig setmUrl(String mUrl) {
+        this.mUrl = mUrl;
+        return this;
+    }
+
     public boolean validateParam() throws KsyRecordException {
         //to do
         return true;
@@ -140,15 +229,12 @@ public class KsyRecordClientConfig {
         if (mVideoBitRate > 0) {
             mediaRecorder.setVideoEncodingBitRate(mVideoBitRate);
         }
+        if (mVideoFrameRate >= 30) {
+            mediaRecorder.setVideoFrameRate(mVideoFrameRate);
+        }
         if (mVideoWidth > 0 && mVideoHeigh > 0) {
             mediaRecorder.setVideoSize(mVideoWidth, mVideoHeigh);
         }
-    }
-
-
-    public void setVideoProfile(int profileID) {
-        this.mVideoProfile = profileID;
-
     }
 
     public static class Builder {
