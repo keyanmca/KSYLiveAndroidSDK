@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Objects;
 
 /**
  * Created by eflakemac on 15/6/26.
@@ -123,11 +122,9 @@ public class KsyRecordSender {
                     frame_audio--;
                 }
 
-                ksyFlv.byteBuffer.rewind(); //使缓冲区为重新读取已包含的数据做好准备，它使限制保持不变，将位置设置为0
-                byte[] data = ksyFlv.byteBuffer.array();
-                int w = _write(data, data.length);
+                int w = _write(ksyFlv.byteBuffer, ksyFlv.byteBuffer.length);
 
-                Log.d(Constants.LOG_TAG, " w=" + w + ">>data=" + data + "<<<>>>>" + data.length);
+                Log.d(Constants.LOG_TAG, " w=" + w + ">>data=" + "<<<>>>>" + ksyFlv.byteBuffer.length);
 
             } else {
 

@@ -195,9 +195,6 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
                 frame_length = special_content.length;
             }
             // make flv
-            if (flvFrameByteArray != null) {
-                flvFrameByteArray = null;
-            }
             ts += delay;
             flvFrameByteArray = new byte[FRAME_DEFINE_HEAD_LENGTH + frame_length + videoExtraSize + FRAME_DEFINE_FOOTER_LENGTH];
             flvFrameByteArray[0] = (byte) FRAME_DEFINE_TYPE_AUDIO;
@@ -245,7 +242,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
 
             //添加音频数据到队列
             KSYFlvData ksyAudio = new KSYFlvData();
-            ksyAudio.byteBuffer = ByteBuffer.wrap(flvFrameByteArray);
+            ksyAudio.byteBuffer = flvFrameByteArray;
             ksyAudio.size = flvFrameByteArray.length;
             ksyAudio.dts = (int) ts;
             ksyAudio.type = 12;

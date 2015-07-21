@@ -70,7 +70,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
     private int videoExtraSize = 9;
     private int last_sum = 0;
 
-    private static final int VIDEO_TAG= 3;
+    private static final int VIDEO_TAG = 3;
     private static final int FROM_VIDEO_DATA = 6;
     private KsyRecordSender ksyVideoSender;
 
@@ -85,7 +85,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
 
         ksyVideoSender = KsyRecordSender.getRecordInstance();
         ksyVideoSender.setRecorderData(mConfig.getUrl(), VIDEO_TAG);
-        Log.d(Constants.LOG_TAG,"test");
+        Log.d(Constants.LOG_TAG, "test");
     }
 
     @Override
@@ -256,9 +256,6 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
     }
 
     private void makeFlvFrame(int type) {
-        if (flvFrameByteArray != null) {
-            flvFrameByteArray = null;
-        }
         if (type == FRAME_TYPE_SPS) {
             videoExtraSize = 5;
         } else {
@@ -311,9 +308,9 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
 
         //添加视频数据到队列
         KSYFlvData ksyVideo = new KSYFlvData();
-        ksyVideo.byteBuffer = ByteBuffer.wrap(flvFrameByteArray);
+        ksyVideo.byteBuffer = flvFrameByteArray;
         ksyVideo.size = flvFrameByteArray.length;
-        ksyVideo.dts = (int)ts;
+        ksyVideo.dts = (int) ts;
         ksyVideo.type = 11;
 
         ksyVideoSender.sender(ksyVideo, FROM_VIDEO_DATA);
