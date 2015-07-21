@@ -127,18 +127,21 @@ public class DrawerItemConfigAdapter {
         if (camera != null) {
             List<Camera.Size> sizes = camera.getParameters().getSupportedVideoSizes();
             camera.release();
-            item.configValueName = new String[sizes.size()];
-            item.configValue = new int[sizes.size()];
-            int i = 0;
-            for (Camera.Size size : sizes) {
-                item.configValue[i] = CameraHelper.cameraSizeToInt(size.width, size.height);
-                StringBuffer builder = new StringBuffer();
-                builder.append(size.width);
-                builder.append("x");
-                builder.append(size.height);
-                item.configValueName[i] = builder.toString();
-                i++;
+            if (sizes != null) {
+                item.configValueName = new String[sizes.size()];
+                item.configValue = new int[sizes.size()];
+                int i = 0;
+                for (Camera.Size size : sizes) {
+                    item.configValue[i] = CameraHelper.cameraSizeToInt(size.width, size.height);
+                    StringBuffer builder = new StringBuffer();
+                    builder.append(size.width);
+                    builder.append("x");
+                    builder.append(size.height);
+                    item.configValueName[i] = builder.toString();
+                    i++;
+                }
             }
+
         }
     }
 

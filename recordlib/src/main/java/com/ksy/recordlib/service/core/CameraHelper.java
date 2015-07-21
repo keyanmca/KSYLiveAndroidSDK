@@ -127,8 +127,11 @@ public class CameraHelper {
         for (int i = 0; i < mNumberOfCameras; i++) {
             Camera.getCameraInfo(i, cameraInfo);
             if (cameraInfo.facing == position) {
-                return Camera.open(i);
-
+                try {
+                    return Camera.open(i);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
 
