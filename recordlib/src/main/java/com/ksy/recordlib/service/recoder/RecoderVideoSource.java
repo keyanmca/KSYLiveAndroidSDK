@@ -59,7 +59,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
     private int sum = 0;
     private boolean isPpsFrameSended = false;
     private boolean isSpsFrameSended = false;
-    private byte[] content;
+    private ByteBuffer content;
     private byte[] flvFrameByteArray;
     private byte[] dataLengthArray;
     private byte[] timestampArray;
@@ -159,6 +159,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
     public void run() {
         prepare();
         is = new FileInputStream(this.piple[0].getFileDescriptor());
+        inputChannel = is.getChannel();
         while (mRunning) {
             Log.d(Constants.LOG_TAG, "entering video loop");
             // This will skip the MPEG4 header if this step fails we can't stream anything :(
@@ -209,16 +210,16 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
 //                resync();
             }
 //            type = header[4] & 0x1F;
-            if (content != null) {
-                content = null;
+            if (content == null) {
+                content = ByteBuffer.allocate(mConfig.getVideoBitRate() * 2);
             }
-            content = new byte[length];
-            int contentResult = fill(content, 0, length);
-            Log.d(Constants.LOG_TAG, "content length = " + length + ",content read result = " + contentResult);
+            content.clear();
+            int contentLength = readIntoBuffer(content, length);
+            Log.d(Constants.LOG_TAG, "header length = " + length + "content length" + contentLength);
             sum += length;
             // Three types of flv video frame
             if (!isSpsFrameSended) {
-                content = null;
+                content.clear();
                 // Step One ,insert in header,sps & pps prefix & data
                 byte[] sps_prefix = hexStringToBytes("0142C028FFE1");
                 byte[] sps_only = Base64.decode(sps.getBytes(), Base64.DEFAULT);
@@ -235,8 +236,8 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
                 fillArray(sps_pps, pps_length);
                 fillArray(sps_pps, pps_only);
                 // build sps_pps end
-                content = sps_pps;
-                length = content.length;
+                content.put(sps_pps);
+                length = content.position();
                 makeFlvFrame(FRAME_TYPE_SPS);
                 isSpsFrameSended = true;
                 return;
@@ -275,7 +276,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
         flvFrameByteArray[8] = (byte) 0;
         flvFrameByteArray[9] = (byte) 0;
         flvFrameByteArray[10] = (byte) 0;
-
+        content.flip();
         // added 5 extra bytes
         for (int i = 0; i < length + videoExtraSize; i++) {
             if (i < videoExtraSize) {
@@ -297,7 +298,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
                     }
                 }
             } else {
-                flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + videoExtraSize + i - videoExtraSize] = content[i - videoExtraSize];
+                flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + videoExtraSize + i - videoExtraSize] = content.get();
             }
         }
         allFrameLengthArray = intToByteArrayFull(FRAME_DEFINE_HEAD_LENGTH + length + videoExtraSize + FRAME_DEFINE_FOOTER_LENGTH);
