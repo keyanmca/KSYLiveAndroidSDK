@@ -9,6 +9,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -95,18 +96,30 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         drawer.setOnItemClickListener(new DrawerItem.OnItemClickListener() {
             @Override
             public void onClick(final DrawerItem drawerItem, long l, final int position) {
-                MaterialDialog.Builder builder = new MaterialDialog.Builder(MainActivity.this);
-                builder.itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
-                    @Override
-                    public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
-                        adapter.onItemSelected(drawerItem, position, which, null);
-                        return false;
-                    }
-                });
-                builder.positiveText(R.string.choose);
-                adapter.setDialogItems(builder, position);
-                builder.show().setSelectedIndex(adapter.setDefaultSelected(position));
-
+                if (position == 6) {
+                    new MaterialDialog.Builder(MainActivity.this)
+                            .title(R.string.Url)
+                            .inputType(InputType.TYPE_CLASS_TEXT)
+                            .input("input rtmp server url", config.getUrl(), new MaterialDialog.InputCallback() {
+                                @Override
+                                public void onInput(MaterialDialog dialog, CharSequence input) {
+                                    config.setmUrl(input.toString());
+                                    drawerItem.setTextSecondary(input.toString());
+                                }
+                            }).show();
+                } else {
+                    MaterialDialog.Builder builder = new MaterialDialog.Builder(MainActivity.this);
+                    builder.itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
+                        @Override
+                        public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
+                            adapter.onItemSelected(drawerItem, position, which, null);
+                            return false;
+                        }
+                    });
+                    builder.positiveText(R.string.choose);
+                    adapter.setDialogItems(builder, position);
+                    builder.show().setSelectedIndex(adapter.setDefaultSelected(position));
+                }
             }
         });
     }

@@ -30,7 +30,7 @@ public class KsyRecordSender {
     private static volatile int frame_video;
     private static volatile int frame_audio;
 
-    private static KsyRecordSender ksyRecordSenderInstance;
+    private static KsyRecordSender ksyRecordSenderInstance = new KsyRecordSender();
 
     private KsyRecordSender() {
     }
@@ -44,17 +44,6 @@ public class KsyRecordSender {
 
 
     public static KsyRecordSender getRecordInstance() {
-
-        if (ksyRecordSenderInstance == null) {
-
-            synchronized (KsyRecordSender.class) {
-
-                if (ksyRecordSenderInstance == null) {
-                    ksyRecordSenderInstance = new KsyRecordSender();
-                }
-            }
-        }
-
         return ksyRecordSenderInstance;
     }
 

@@ -40,10 +40,12 @@ public class Constants {
     public static final int CONFIG_VIDEO_BITRATE_500K = 500 * 1000;
     public static final int CONFIG_VIDEO_BITRATE_750K = 750 * 1000;
     public static final int CONFIG_VIDEO_BITRATE_1000K = 1000 * 1000;
+    public static final int CONFIG_VIDEO_BITRATE_1500K = 1500 * 1000;
 
     public static final int CONFIG_VIDEO_FRAME_RATE_10 = 10;
     public static final int CONFIG_VIDEO_FRAME_RATE_15 = 15;
     public static final int CONFIG_VIDEO_FRAME_RATE_21 = 21;
     public static final int CONFIG_VIDEO_FRAME_RATE_30 = 30;
+
 
 }
