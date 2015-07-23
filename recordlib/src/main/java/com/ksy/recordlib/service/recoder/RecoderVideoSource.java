@@ -276,31 +276,27 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
         flvFrameByteArray[8] = (byte) 0;
         flvFrameByteArray[9] = (byte) 0;
         flvFrameByteArray[10] = (byte) 0;
-        content.flip();
         // added 5 extra bytes
-        for (int i = 0; i < length + videoExtraSize; i++) {
-            if (i < videoExtraSize) {
-                if (i == 0) {
-                    //1 byte flag
-                    flvFrameByteArray[11 + i] = (byte) 23;
-                } else if (i == 1) {
-                    if (type == FRAME_TYPE_SPS || type == FRAME_TYPE_PPS) {
-                        flvFrameByteArray[11 + i] = (byte) 0;
-                    } else {
-                        flvFrameByteArray[11 + i] = (byte) 1;
-                    }
-                } else if (i < 5) {
+        for (int i = 0; i < videoExtraSize; i++) {
+            if (i == 0) {
+                //1 byte flag
+                flvFrameByteArray[11 + i] = (byte) 23;
+            } else if (i == 1) {
+                if (type == FRAME_TYPE_SPS || type == FRAME_TYPE_PPS) {
                     flvFrameByteArray[11 + i] = (byte) 0;
                 } else {
-                    if (type != FRAME_TYPE_SPS) {
-                        byte[] real_length = intToByteArrayFull(length);
-                        flvFrameByteArray[11 + i] = real_length[i - 5];
-                    }
+                    flvFrameByteArray[11 + i] = (byte) 1;
                 }
+            } else if (i < 5) {
+                flvFrameByteArray[11 + i] = (byte) 0;
             } else {
-                flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + videoExtraSize + i - videoExtraSize] = content.get();
+                if (type != FRAME_TYPE_SPS) {
+                    byte[] real_length = intToByteArrayFull(length);
+                    flvFrameByteArray[11 + i] = real_length[i - 5];
+                }
             }
         }
+        System.arraycopy(content.array(), 0, flvFrameByteArray, FRAME_DEFINE_HEAD_LENGTH + videoExtraSize, length);
         allFrameLengthArray = intToByteArrayFull(FRAME_DEFINE_HEAD_LENGTH + length + videoExtraSize + FRAME_DEFINE_FOOTER_LENGTH);
         flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + length + videoExtraSize] = allFrameLengthArray[0];
         flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + length + videoExtraSize + 1] = allFrameLengthArray[1];
