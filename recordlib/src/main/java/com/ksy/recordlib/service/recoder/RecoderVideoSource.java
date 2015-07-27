@@ -206,9 +206,10 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
             ts += delay;
             Log.d(Constants.LOG_TAG, "timestamp = " + ts);
             length = (header[0] & 0xFF) << 24 | (header[1] & 0xFF) << 16 | (header[2] & 0xFF) << 8 | (header[3] & 0xFF);
-            if (length > 100000 || length < 0) {
-//                resync();
+            if (length > mConfig.getVideoBitRate() * 5 || length < 0) {
+                return;
             }
+            Log.d(Constants.LOG_TAG, "header length = " + length + "content length");
 //            type = header[4] & 0x1F;
             if (content == null) {
                 content = ByteBuffer.allocate(mConfig.getVideoBitRate() * 2);

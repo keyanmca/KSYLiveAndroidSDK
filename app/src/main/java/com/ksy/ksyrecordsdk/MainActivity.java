@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.heinrichreimersoftware.materialdrawer.DrawerView;
@@ -25,8 +26,12 @@ import com.heinrichreimersoftware.materialdrawer.structure.DrawerItem;
 import com.ksy.ksyrecordsdk.com.ksy.ksyrecordsdk.config.DrawerItemConfigAdapter;
 import com.ksy.recordlib.service.core.KsyRecordClient;
 import com.ksy.recordlib.service.core.KsyRecordClientConfig;
+import com.ksy.recordlib.service.core.KsyRecordSender;
 import com.ksy.recordlib.service.exception.KsyRecordException;
 import com.ksy.recordlib.service.util.Constants;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
     private CameraSurfaceView mSurfaceView;
@@ -37,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private KsyRecordClientConfig config;
     private RelativeLayout mContainer;
     private ImageView mImageView;
+    private TextView bitrate;
     private DrawerItemConfigAdapter adapter;
     private DrawerView drawer;
     private ActionBarDrawerToggle drawerToggle;
@@ -52,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private void initWidget() {
         mContainer = (RelativeLayout) findViewById(R.id.container);
+        bitrate = (TextView) findViewById(R.id.bitrate);
         mImageView = new ImageView(MainActivity.this);
         mImageView.setBackgroundColor(0xff000000);
         mFab = (FloatingActionButton) findViewById(R.id.fab);
@@ -64,6 +71,22 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         setupSurfaceView();
         setUpEnvironment();
         initDrawer();
+        startBitrateTimer();
+    }
+
+    private void startBitrateTimer() {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                bitrate.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        bitrate.setText(KsyRecordSender.getRecordInstance().getAVBitrate());
+                    }
+                }, 1000);
+            }
+        }, 1000, 1000);
     }
 
     private void initDrawer() {

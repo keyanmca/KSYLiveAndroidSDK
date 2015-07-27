@@ -97,8 +97,8 @@ public class DrawerItemConfigAdapter {
         ConfigItem videoFrameRate = new ConfigItem();
         videoFrameRate.index = 2;
         videoFrameRate.configName = context.getString(R.string.video_frame_rate);
-        videoFrameRate.configValue = new int[]{Constants.CONFIG_VIDEO_FRAME_RATE_30};
-        videoFrameRate.configValueName = new String[]{"30fps"};
+        videoFrameRate.configValue = new int[]{Constants.CONFIG_VIDEO_FRAME_RATE_10, Constants.CONFIG_VIDEO_FRAME_RATE_15, Constants.CONFIG_VIDEO_FRAME_RATE_21, Constants.CONFIG_VIDEO_FRAME_RATE_30};
+        videoFrameRate.configValueName = new String[]{"15fps", "21fps", "30fps"};
         items.add(videoFrameRate);
 
         ConfigItem videoBitrate = new ConfigItem();
