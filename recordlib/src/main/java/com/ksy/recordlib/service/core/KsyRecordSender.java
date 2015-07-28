@@ -16,6 +16,8 @@ public class KsyRecordSender {
     //	@AccessedByNative
     public long mNativeRTMP;
 
+    private String TAG = "KsyRecordSender";
+
     private Thread worker;
     private String mUrl;
     private boolean connected = false;
@@ -30,9 +32,50 @@ public class KsyRecordSender {
     private static volatile int frame_video;
     private static volatile int frame_audio;
 
-    private static KsyRecordSender ksyRecordSenderInstance;
+    private static KsyRecordSender ksyRecordSenderInstance = new KsyRecordSender();
+
+    /**
+     * this is instantaneous value of video/audio bitrate
+     */
+    private float currentVideoBitrate, currentAudioBitrate = 0;
+    /**
+     * producer bitrate
+     */
+    private float encodeVideoBitrate, encodeAudioBitrate;
+    /**
+     * this is average instantaneous value of video/audio bitrate during last second
+     */
+    private float avgInstantaneousVideoBitrate, avgInstantaneousAudioBitrate;
+    private int videoByteSum, audioByteSum;
+    private long videoTime, audioTime;
+    private long last_stat_time;
+    private long lastRefreshTime;
 
     private KsyRecordSender() {
+    }
+
+    public float getCurrentVideoBitrate() {
+        return currentVideoBitrate;
+    }
+
+    public float getCurrentAudioBitrate() {
+        return currentAudioBitrate;
+    }
+
+    public float getEncodeVideoBitrate() {
+        return encodeVideoBitrate;
+    }
+
+    public float getEncodeAudioBitrate() {
+        return encodeAudioBitrate;
+    }
+
+    public float getAvgInstantaneousVideoBitrate() {
+        return avgInstantaneousVideoBitrate;
+    }
+
+    public float getAvgInstantaneousAudioBitrate() {
+        return avgInstantaneousAudioBitrate;
     }
 
     static {
@@ -44,17 +87,6 @@ public class KsyRecordSender {
 
 
     public static KsyRecordSender getRecordInstance() {
-
-        if (ksyRecordSenderInstance == null) {
-
-            synchronized (KsyRecordSender.class) {
-
-                if (ksyRecordSenderInstance == null) {
-                    ksyRecordSenderInstance = new KsyRecordSender();
-                }
-            }
-        }
-
         return ksyRecordSenderInstance;
     }
 
@@ -75,6 +107,16 @@ public class KsyRecordSender {
 
     }
 
+    public String getAVBitrate() {
+        return
+                "currentTransferVideoBr=" + currentVideoBitrate +
+                        ", currentTransferAudiobr:" + currentAudioBitrate +
+                        ", encodeVideobr:" + encodeVideoBitrate +
+                        ", encodeAudiobr:" + encodeAudioBitrate +
+                        ", avgInstantaneousVideobr:" + avgInstantaneousVideoBitrate +
+                        ", avgInstantaneousAudiobr:" + avgInstantaneousAudioBitrate
+                ;
+    }
 
     public void start() throws IOException {
 
@@ -121,15 +163,40 @@ public class KsyRecordSender {
                 } else if (ksyFlv.type == 12) {
                     frame_audio--;
                 }
-
+                lastRefreshTime = System.currentTimeMillis();
                 int w = _write(ksyFlv.byteBuffer, ksyFlv.byteBuffer.length);
-
-                Log.d(Constants.LOG_TAG, " w=" + w + ">>data=" + "<<<>>>>" + ksyFlv.byteBuffer.length);
+                statBitrate(w, ksyFlv.type);
 
             } else {
-
-                Log.d(Constants.LOG_TAG, "frame_video ||  frame_audio  <1 -------");
+//                Log.d(Constants.LOG_TAG, "frame_video ||  frame_audio  <1 -------");
             }
+        }
+    }
+
+    private void statBitrate(int sent, int type) {
+        long time = System.currentTimeMillis() - lastRefreshTime;
+        time = time == 0 ? 1 : time;
+        Log.d(TAG, "type=" + type + "time = " + time);
+        if (type == 11) {
+            currentVideoBitrate = sent / (time);
+            videoByteSum += sent;
+            videoTime += time;
+        } else if (type == 12) {
+            currentAudioBitrate = sent / (time);
+            audioByteSum += sent;
+            audioTime += time;
+        }
+        long escape = System.currentTimeMillis() - last_stat_time;
+        if (escape > 1000) {
+            encodeVideoBitrate = (float) videoByteSum / escape;
+            encodeAudioBitrate = (float) audioByteSum / escape;
+            avgInstantaneousVideoBitrate = (float) videoByteSum / videoTime;
+            avgInstantaneousAudioBitrate = (float) audioByteSum / audioTime;
+            videoByteSum = 0;
+            videoTime = 0;
+            audioByteSum = 0;
+            audioTime = 0;
+            last_stat_time = System.currentTimeMillis();
         }
     }
 

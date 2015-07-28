@@ -13,4 +13,6 @@ public class KSYFlvData {
 
     public int type; //视频和音频的分类
 
+    public int frameType;
+
 }

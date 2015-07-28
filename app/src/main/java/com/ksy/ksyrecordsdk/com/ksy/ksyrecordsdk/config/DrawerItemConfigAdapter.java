@@ -97,15 +97,15 @@ public class DrawerItemConfigAdapter {
         ConfigItem videoFrameRate = new ConfigItem();
         videoFrameRate.index = 2;
         videoFrameRate.configName = context.getString(R.string.video_frame_rate);
-        videoFrameRate.configValue = new int[]{Constants.CONFIG_VIDEO_FRAME_RATE_30};
-        videoFrameRate.configValueName = new String[]{"30fps"};
+        videoFrameRate.configValue = new int[]{Constants.CONFIG_VIDEO_FRAME_RATE_10, Constants.CONFIG_VIDEO_FRAME_RATE_15, Constants.CONFIG_VIDEO_FRAME_RATE_21, Constants.CONFIG_VIDEO_FRAME_RATE_30};
+        videoFrameRate.configValueName = new String[]{"15fps", "21fps", "30fps"};
         items.add(videoFrameRate);
 
         ConfigItem videoBitrate = new ConfigItem();
         videoBitrate.index = 3;
         videoBitrate.configName = context.getString(R.string.video_bitrate);
-        videoBitrate.configValue = new int[]{Constants.CONFIG_VIDEO_BITRATE_250K, Constants.CONFIG_VIDEO_BITRATE_500K, Constants.CONFIG_VIDEO_BITRATE_750K, Constants.CONFIG_VIDEO_BITRATE_1000K};
-        videoBitrate.configValueName = new String[]{"250K", "500K", "750K", "1000K"};
+        videoBitrate.configValue = new int[]{Constants.CONFIG_VIDEO_BITRATE_250K, Constants.CONFIG_VIDEO_BITRATE_500K, Constants.CONFIG_VIDEO_BITRATE_750K, Constants.CONFIG_VIDEO_BITRATE_1000K, Constants.CONFIG_VIDEO_BITRATE_1500K};
+        videoBitrate.configValueName = new String[]{"250K", "500K", "750K", "1000K", "1500K"};
         items.add(videoBitrate);
 
         ConfigItem cameraType = new ConfigItem();
@@ -120,6 +120,11 @@ public class DrawerItemConfigAdapter {
         videoSize.configName = context.getString(R.string.video_size);
         makeVideoProfile(videoSize);
         items.add(videoSize);
+
+        ConfigItem mUrl = new ConfigItem();
+        mUrl.index = 6;
+        mUrl.configName = context.getString(R.string.Url);
+        items.add(mUrl);
     }
 
     private void makeVideoProfile(ConfigItem item) {

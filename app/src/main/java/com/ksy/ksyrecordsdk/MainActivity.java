@@ -9,6 +9,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,6 +18,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.heinrichreimersoftware.materialdrawer.DrawerView;
@@ -24,8 +26,12 @@ import com.heinrichreimersoftware.materialdrawer.structure.DrawerItem;
 import com.ksy.ksyrecordsdk.com.ksy.ksyrecordsdk.config.DrawerItemConfigAdapter;
 import com.ksy.recordlib.service.core.KsyRecordClient;
 import com.ksy.recordlib.service.core.KsyRecordClientConfig;
+import com.ksy.recordlib.service.core.KsyRecordSender;
 import com.ksy.recordlib.service.exception.KsyRecordException;
 import com.ksy.recordlib.service.util.Constants;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
     private CameraSurfaceView mSurfaceView;
@@ -36,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private KsyRecordClientConfig config;
     private RelativeLayout mContainer;
     private ImageView mImageView;
+    private TextView bitrate;
     private DrawerItemConfigAdapter adapter;
     private DrawerView drawer;
     private ActionBarDrawerToggle drawerToggle;
@@ -51,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private void initWidget() {
         mContainer = (RelativeLayout) findViewById(R.id.container);
+        bitrate = (TextView) findViewById(R.id.bitrate);
         mImageView = new ImageView(MainActivity.this);
         mImageView.setBackgroundColor(0xff000000);
         mFab = (FloatingActionButton) findViewById(R.id.fab);
@@ -63,6 +71,22 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         setupSurfaceView();
         setUpEnvironment();
         initDrawer();
+        startBitrateTimer();
+    }
+
+    private void startBitrateTimer() {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                bitrate.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        bitrate.setText(KsyRecordSender.getRecordInstance().getAVBitrate());
+                    }
+                }, 1000);
+            }
+        }, 1000, 1000);
     }
 
     private void initDrawer() {
@@ -95,18 +119,30 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         drawer.setOnItemClickListener(new DrawerItem.OnItemClickListener() {
             @Override
             public void onClick(final DrawerItem drawerItem, long l, final int position) {
-                MaterialDialog.Builder builder = new MaterialDialog.Builder(MainActivity.this);
-                builder.itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
-                    @Override
-                    public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
-                        adapter.onItemSelected(drawerItem, position, which, null);
-                        return false;
-                    }
-                });
-                builder.positiveText(R.string.choose);
-                adapter.setDialogItems(builder, position);
-                builder.show().setSelectedIndex(adapter.setDefaultSelected(position));
-
+                if (position == 6) {
+                    new MaterialDialog.Builder(MainActivity.this)
+                            .title(R.string.Url)
+                            .inputType(InputType.TYPE_CLASS_TEXT)
+                            .input("input rtmp server url", config.getUrl(), new MaterialDialog.InputCallback() {
+                                @Override
+                                public void onInput(MaterialDialog dialog, CharSequence input) {
+                                    config.setmUrl(input.toString());
+                                    drawerItem.setTextSecondary(input.toString());
+                                }
+                            }).show();
+                } else {
+                    MaterialDialog.Builder builder = new MaterialDialog.Builder(MainActivity.this);
+                    builder.itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
+                        @Override
+                        public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
+                            adapter.onItemSelected(drawerItem, position, which, null);
+                            return false;
+                        }
+                    });
+                    builder.positiveText(R.string.choose);
+                    adapter.setDialogItems(builder, position);
+                    builder.show().setSelectedIndex(adapter.setDefaultSelected(position));
+                }
             }
         });
     }
