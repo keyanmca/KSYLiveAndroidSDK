@@ -1,13 +1,19 @@
 package com.ksy.recordlib.service.core;
 
+import android.os.Environment;
 import android.util.Log;
 
 import com.ksy.recordlib.service.util.Constants;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 
 /**
  * Created by eflakemac on 15/6/26.
@@ -22,7 +28,8 @@ public class KsyRecordSender {
     private String mUrl;
     private boolean connected = false;
 
-    private ArrayList<KSYFlvData> recordQueue;
+    private LinkedList<KSYFlvData> recordQueue;
+
     private Object mutex = new Object();
 
     private static final int FIRST_OPEN = 3;
@@ -33,6 +40,12 @@ public class KsyRecordSender {
     private static volatile int frame_audio;
 
     private static KsyRecordSender ksyRecordSenderInstance = new KsyRecordSender();
+
+    private byte[] buffer = new byte[10 * 1000 * 1000];
+
+    private boolean isWrite = false;
+    private int recordsum = 0;
+    String filePath;
 
     /**
      * this is instantaneous value of video/audio bitrate
@@ -93,7 +106,7 @@ public class KsyRecordSender {
 
     public void setRecorderData(String url, int j) {
 
-        recordQueue = new ArrayList<KSYFlvData>();
+        recordQueue = new LinkedList<KSYFlvData>();
 
         mUrl = url;
 
@@ -102,7 +115,8 @@ public class KsyRecordSender {
         //3视频  0音频
         if (j == FIRST_OPEN) {
             int c = _open();
-            Log.d(Constants.LOG_TAG, "c ==" + c + ">>i=" + i);
+
+            Log.d(TAG, "c ==" + c + ">>i=" + i);
         }
 
     }
@@ -141,7 +155,7 @@ public class KsyRecordSender {
 
         while (true) {
             //send
-            if (frame_video > 1 && frame_audio > 1) {
+            if (frame_video > 1 || frame_audio > 1) {
 
                 KSYFlvData ksyFlv;
 
@@ -157,18 +171,28 @@ public class KsyRecordSender {
                     ksyFlv = recordQueue.remove(0);
                 }
 
+                Log.e(TAG, "---======---- ksyFlv.type=" + ksyFlv.type + ">>frame_video=" + frame_video + "<<>>frame_audio=" + frame_audio);
+
                 if (ksyFlv.type == 11) {
                     frame_video--;
 
                 } else if (ksyFlv.type == 12) {
                     frame_audio--;
                 }
+
+                //写文件
+                createFile(filePath, ksyFlv.byteBuffer, ksyFlv.byteBuffer.length);
+
+
                 lastRefreshTime = System.currentTimeMillis();
                 int w = _write(ksyFlv.byteBuffer, ksyFlv.byteBuffer.length);
                 statBitrate(w, ksyFlv.type);
 
+                Log.e(TAG, " w=" + w + ">>data=" + "<<<>>>>" + ksyFlv.byteBuffer.length);
+
             } else {
-//                Log.d(Constants.LOG_TAG, "frame_video ||  frame_audio  <1 -------");
+
+                Log.d(TAG, "frame_video ||  frame_audio  <1 -------");
             }
         }
     }
@@ -198,6 +222,55 @@ public class KsyRecordSender {
             audioTime = 0;
             last_stat_time = System.currentTimeMillis();
         }
+    }
+
+
+    public byte[] hexStringToBytes(String hexString) {
+        if (hexString == null || hexString.equals("")) {
+            return null;
+        }
+        hexString = hexString.toUpperCase();
+        int length = hexString.length() / 2;
+        char[] hexChars = hexString.toCharArray();
+        byte[] d = new byte[length];
+        for (int i = 0; i < length; i++) {
+            int pos = i * 2;
+            d[i] = (byte) (charToByte(hexChars[pos]) << 4 | charToByte(hexChars[pos + 1]));
+        }
+        return d;
+    }
+
+    private byte charToByte(char c) {
+        return (byte) "0123456789ABCDEF".indexOf(c);
+    }
+
+
+    private String getSDPath() {
+        File sdDir = null;
+        boolean sdCardExist = Environment.getExternalStorageState()
+                .equals(Environment.MEDIA_MOUNTED); // 判断sd卡是否存在
+        if (sdCardExist) {
+            sdDir = Environment.getExternalStorageDirectory();// 获取跟目录
+            return sdDir.toString();
+        }
+
+        return null;
+    }
+
+    public void createFile(String path, byte[] content, int length) {
+        try {
+            FileOutputStream outputStream = new FileOutputStream(path, true);
+            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+            bufferedOutputStream.write(content, 0, length);
+            bufferedOutputStream.flush();
+            bufferedOutputStream.close();
+            outputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
 
@@ -246,7 +319,7 @@ public class KsyRecordSender {
 
         int time = ksyFlvData.dts;
 
-        Log.d(Constants.LOG_TAG, "k==" + k + ">>>time=" + time + "<<<frame_video==" + frame_video + ">>>frame_audio=" + frame_audio);
+        Log.e(TAG, "k==" + k + ">>>time=" + time + "<<<frame_video==" + frame_video + ">>>frame_audio=" + frame_audio);
 
         // add video data
         synchronized (mutex) {

@@ -248,8 +248,8 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             ksyAudio.type = 12;
 
             ksyRecordSender.sender(ksyAudio, FROM_AUDIO_DATA);
-
             duration = System.currentTimeMillis() - oldTime;
+
 //            stats.push(duration);
 //            delay = stats.average();
 //            delay = 23;
