@@ -67,6 +67,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
     private Handler delayHandler = new Handler();
     private boolean isFirstDelay = false;
 
+    public static long startAudioTime;
 
     public RecoderAudioSource(KsyRecordClientConfig mConfig, KsyRecordClient.RecordHandler mRecordHandler, Context mContext) {
 //        super(mConfig.getUrl(), AUDIO_TAG);//TODO
@@ -111,6 +112,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
         try {
             mRecorder.prepare();
             mRecorder.start();
+            startAudioTime = System.currentTimeMillis();
         } catch (IOException e) {
         }
     }

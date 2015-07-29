@@ -1,16 +1,10 @@
 package com.ksy.recordlib.service.core;
 
-import android.os.Environment;
 import android.util.Log;
 
 import com.ksy.recordlib.service.util.Constants;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -59,6 +53,7 @@ public class KsyRecordSender {
     private long lastRefreshTime;
 
     private KsyRecordSender() {
+        recordQueue = new LinkedList<KSYFlvData>();
     }
 
     public float getCurrentVideoBitrate() {
@@ -99,9 +94,6 @@ public class KsyRecordSender {
 
 
     public void setRecorderData(String url, int j) {
-
-        recordQueue = new LinkedList<KSYFlvData>();
-
         mUrl = url;
 
         int i = _set_output_url(url);
@@ -116,15 +108,14 @@ public class KsyRecordSender {
     }
 
     public String getAVBitrate() {
-        return
-                "currentTransferVideoBr=" + currentVideoBitrate +
-                        ", currentTransferAudiobr:" + currentAudioBitrate +
-                        ", encodeVideobr:" + encodeVideoBitrate +
-                        ", encodeAudiobr:" + encodeAudioBitrate +
-                        ", avgInstantaneousVideobr:" + avgInstantaneousVideoBitrate +
-                        ", avgInstantaneousAudiobr:" + avgInstantaneousAudioBitrate
-                ;
+        return "currentTransferVideoBr=" + currentVideoBitrate +
+                ", currentTransferAudiobr:" + currentAudioBitrate +
+                ", encodeVideobr:" + encodeVideoBitrate +
+                ", encodeAudiobr:" + encodeAudioBitrate +
+                ", avgInstantaneousVideobr:" + avgInstantaneousVideoBitrate +
+                ", avgInstantaneousAudiobr:" + avgInstantaneousAudioBitrate + ",size=" + recordQueue.size();
     }
+
 
     public void start() throws IOException {
 
@@ -188,7 +179,7 @@ public class KsyRecordSender {
     private void statBitrate(int sent, int type) {
         long time = System.currentTimeMillis() - lastRefreshTime;
         time = time == 0 ? 1 : time;
-        Log.d(TAG, "type=" + type + "time = " + time);
+        Log.e(TAG, "type=" + type + "time = " + time);
         if (type == 11) {
             currentVideoBitrate = sent / (time);
             videoByteSum += sent;

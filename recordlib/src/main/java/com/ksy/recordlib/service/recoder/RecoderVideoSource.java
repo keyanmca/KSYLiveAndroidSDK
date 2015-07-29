@@ -76,6 +76,8 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
 
     private Byte kFlag;
 
+    public static long startVideoTime;
+
     public RecoderVideoSource(Camera mCamera, KsyRecordClientConfig mConfig, SurfaceView mSurfaceView, KsyRecordClient.RecordHandler mRecordHandler, Context mContext) {
         this.mCamera = mCamera;
         this.mConfig = mConfig;
@@ -106,6 +108,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
             mRecorder.setOnErrorListener(this);
             mRecorder.prepare();
             mRecorder.start();
+            startVideoTime = System.currentTimeMillis();
         } catch (IOException e) {
             e.printStackTrace();
             release();
@@ -204,6 +207,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
         if (isSpsFrameSended) {
             parseVideo();
         } else {
+            ts = startVideoTime - RecoderAudioSource.startAudioTime;
             ts += delay;
             content.clear();
             // Step One ,insert in header,sps & pps prefix & data
