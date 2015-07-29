@@ -186,10 +186,11 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
                 // Begin parse video data
                 oldTime = System.currentTimeMillis();
                 parseAndSend();
-                duration = System.currentTimeMillis() - oldTime;
+               /* duration = System.currentTimeMillis() - oldTime;
                 stats.push(duration);
-                delay = stats.average();
+                delay = stats.average();*/
 
+                delay = 33;
             }
         }
         Log.d(Constants.LOG_TAG, "exiting video loop");

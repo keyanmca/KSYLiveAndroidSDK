@@ -41,12 +41,6 @@ public class KsyRecordSender {
 
     private static KsyRecordSender ksyRecordSenderInstance = new KsyRecordSender();
 
-    private byte[] buffer = new byte[10 * 1000 * 1000];
-
-    private boolean isWrite = false;
-    private int recordsum = 0;
-    String filePath;
-
     /**
      * this is instantaneous value of video/audio bitrate
      */
@@ -171,18 +165,12 @@ public class KsyRecordSender {
                     ksyFlv = recordQueue.remove(0);
                 }
 
-                Log.e(TAG, "---======---- ksyFlv.type=" + ksyFlv.type + ">>frame_video=" + frame_video + "<<>>frame_audio=" + frame_audio);
-
                 if (ksyFlv.type == 11) {
                     frame_video--;
 
                 } else if (ksyFlv.type == 12) {
                     frame_audio--;
                 }
-
-                //写文件
-                createFile(filePath, ksyFlv.byteBuffer, ksyFlv.byteBuffer.length);
-
 
                 lastRefreshTime = System.currentTimeMillis();
                 int w = _write(ksyFlv.byteBuffer, ksyFlv.byteBuffer.length);
@@ -222,55 +210,6 @@ public class KsyRecordSender {
             audioTime = 0;
             last_stat_time = System.currentTimeMillis();
         }
-    }
-
-
-    public byte[] hexStringToBytes(String hexString) {
-        if (hexString == null || hexString.equals("")) {
-            return null;
-        }
-        hexString = hexString.toUpperCase();
-        int length = hexString.length() / 2;
-        char[] hexChars = hexString.toCharArray();
-        byte[] d = new byte[length];
-        for (int i = 0; i < length; i++) {
-            int pos = i * 2;
-            d[i] = (byte) (charToByte(hexChars[pos]) << 4 | charToByte(hexChars[pos + 1]));
-        }
-        return d;
-    }
-
-    private byte charToByte(char c) {
-        return (byte) "0123456789ABCDEF".indexOf(c);
-    }
-
-
-    private String getSDPath() {
-        File sdDir = null;
-        boolean sdCardExist = Environment.getExternalStorageState()
-                .equals(Environment.MEDIA_MOUNTED); // 判断sd卡是否存在
-        if (sdCardExist) {
-            sdDir = Environment.getExternalStorageDirectory();// 获取跟目录
-            return sdDir.toString();
-        }
-
-        return null;
-    }
-
-    public void createFile(String path, byte[] content, int length) {
-        try {
-            FileOutputStream outputStream = new FileOutputStream(path, true);
-            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
-            bufferedOutputStream.write(content, 0, length);
-            bufferedOutputStream.flush();
-            bufferedOutputStream.close();
-            outputStream.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 
 

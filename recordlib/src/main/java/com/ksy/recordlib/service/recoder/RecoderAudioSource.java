@@ -3,6 +3,7 @@ package com.ksy.recordlib.service.recoder;
 import android.content.Context;
 import android.media.MediaRecorder;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
@@ -63,6 +64,8 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
 
     private static final int FROM_AUDIO_DATA = 8;
     private KsyRecordSender ksyRecordSender;
+    private Handler delayHandler = new Handler();
+    private boolean isFirstDelay = false;
 
 
     public RecoderAudioSource(KsyRecordClientConfig mConfig, KsyRecordClient.RecordHandler mRecordHandler, Context mContext) {
@@ -248,8 +251,16 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             ksyAudio.type = 12;
 
             ksyRecordSender.sender(ksyAudio, FROM_AUDIO_DATA);
-            duration = System.currentTimeMillis() - oldTime;
 
+           /* if (!isFirstDelay) {
+                delayHandler.postDelayed(runnableAudioSend, 500);
+
+            } else {
+                ksyRecordSender.sender(ksyAudio, FROM_AUDIO_DATA);
+            }*/
+
+
+//            duration = System.currentTimeMillis() - oldTime;
 //            stats.push(duration);
 //            delay = stats.average();
 //            delay = 23;
@@ -299,6 +310,14 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
 
     }
 
+    //delay
+    /*Runnable runnableAudioSend = new Runnable() {
+        @Override
+        public void run() {
+            ksyRecordSender.sender(ksyAudio, FROM_AUDIO_DATA);
+            isFirstDelay = true;
+        }
+    };*/
 
     private void fillArray(byte[] sps_pps, byte[] target) {
         for (int i = 0; i < target.length; i++) {

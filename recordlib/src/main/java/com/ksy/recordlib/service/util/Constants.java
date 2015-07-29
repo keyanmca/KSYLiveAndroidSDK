@@ -6,7 +6,7 @@ package com.ksy.recordlib.service.util;
 public class Constants {
     public static final String LOG_TAG = "ksy-record-sdk";
     // Voice Encode Default
-        public static final String URL_DEFAULT = "rtmp://192.168.135.185/myTestLive/eflake";
+    public static final String URL_DEFAULT = "rtmp://192.168.135.185/myTestLive/eflakee2332";
     public static final int ENCODE_MODE_MEDIA_RECORDER = 0;
     public static final int ENCODE_MODE_MEDIA_CODEC = 1;
     public static final int ENCODE_MODE_WEBRTC = 2;
