@@ -5,6 +5,10 @@ package com.ksy.recordlib.service.core;
  */
 public class KSYFlvData {
 
+    public final static int FLV_TYPE_VIDEO = 11;
+    public final static int FLV_TYTPE_AUDIO = 12;
+
+
     public int dts;//解码时间戳
 
     public byte[] byteBuffer; //数据
@@ -14,5 +18,9 @@ public class KSYFlvData {
     public int type; //视频和音频的分类
 
     public int frameType;
+
+    public boolean isKeyframe() {
+        return frameType == 5;
+    }
 
 }

@@ -33,6 +33,11 @@ public class KsyRecordSender {
     private static volatile int frame_video;
     private static volatile int frame_audio;
 
+    private static final int LEVEL1_QUEUE_SZIE = 10;
+    private static final int LEVEL2_QUEUE_SZIE = 50;
+    private static final int MAX_QUEUE_SIZE = 500;
+
+
     private static KsyRecordSender ksyRecordSenderInstance = new KsyRecordSender();
 
     /**
@@ -51,6 +56,8 @@ public class KsyRecordSender {
     private long videoTime, audioTime;
     private long last_stat_time;
     private long lastRefreshTime;
+    private long lastSendVideoDts;
+    private long lastSendAudioDts;
 
     private KsyRecordSender() {
         recordQueue = new LinkedList<KSYFlvData>();
@@ -95,16 +102,12 @@ public class KsyRecordSender {
 
     public void setRecorderData(String url, int j) {
         mUrl = url;
-
         int i = _set_output_url(url);
-
         //3视频  0音频
         if (j == FIRST_OPEN) {
             int c = _open();
-
             Log.d(TAG, "c ==" + c + ">>i=" + i);
         }
-
     }
 
     public String getAVBitrate() {
@@ -118,14 +121,11 @@ public class KsyRecordSender {
 
 
     public void start() throws IOException {
-
         worker = new Thread(new Runnable() {
             @Override
             public void run() {
-
                 try {
                     cycle();
-
                 } catch (Exception e) {
                     Log.e(Constants.LOG_TAG, "worker: thread exception. e＝" + e);
                     e.printStackTrace();
@@ -137,43 +137,75 @@ public class KsyRecordSender {
 
 
     private void cycle() {
-
         while (true) {
             //send
             if (frame_video > 1 || frame_audio > 1) {
-
                 KSYFlvData ksyFlv;
-
                 synchronized (mutex) {
                     Collections.sort(recordQueue, new Comparator<KSYFlvData>() {
                         @Override
                         public int compare(KSYFlvData lhs, KSYFlvData rhs) {
-
                             return lhs.dts - rhs.dts;
                         }
                     });
-
                     ksyFlv = recordQueue.remove(0);
                 }
-
-                if (ksyFlv.type == 11) {
+                if (ksyFlv.type == KSYFlvData.FLV_TYPE_VIDEO) {
                     frame_video--;
-
-                } else if (ksyFlv.type == 12) {
+                } else if (ksyFlv.type == KSYFlvData.FLV_TYTPE_AUDIO) {
                     frame_audio--;
                 }
-
-                lastRefreshTime = System.currentTimeMillis();
-                int w = _write(ksyFlv.byteBuffer, ksyFlv.byteBuffer.length);
-                statBitrate(w, ksyFlv.type);
-
-                Log.e(TAG, " w=" + w + ">>data=" + "<<<>>>>" + ksyFlv.byteBuffer.length);
-
+                if (needDropFrame(ksyFlv)) {
+                    statDropFrame(ksyFlv);
+                } else {
+                    lastRefreshTime = System.currentTimeMillis();
+                    int w = _write(ksyFlv.byteBuffer, ksyFlv.byteBuffer.length);
+                    statBitrate(w, ksyFlv.type);
+                }
             } else {
-
                 Log.d(TAG, "frame_video ||  frame_audio  <1 -------");
             }
         }
+    }
+
+    private boolean needDropFrame(KSYFlvData ksyFlv) {
+        boolean dropFrame;
+        int queueSize = recordQueue.size();
+        int dts = ksyFlv.dts;
+        if (queueSize < LEVEL1_QUEUE_SZIE) {
+            dropFrame = false;
+        } else if (queueSize < LEVEL2_QUEUE_SZIE) {
+            if (ksyFlv.type == KSYFlvData.FLV_TYTPE_AUDIO || ksyFlv.isKeyframe()) {
+                dropFrame = false;
+            } else {
+                int needKps = (int) (ksyFlv.size / 1024 * (1000) / (dts - lastSendVideoDts));
+                dropFrame = (needKps > (avgInstantaneousAudioBitrate + avgInstantaneousVideoBitrate) / 2);
+            }
+        } else if (queueSize < MAX_QUEUE_SIZE) {
+            if (ksyFlv.isKeyframe()) {
+                dropFrame = false;
+            } else {
+                int needKps;
+                if (ksyFlv.type == KSYFlvData.FLV_TYPE_VIDEO) {
+                    needKps = (int) (ksyFlv.size / 1024 * (1000) / (dts - lastSendVideoDts));
+                } else {
+                    needKps = (int) (ksyFlv.size / 1024 * (1000) / (dts - lastSendAudioDts));
+                }
+                dropFrame = (needKps > (avgInstantaneousAudioBitrate + avgInstantaneousVideoBitrate) / 2);
+            }
+        } else {
+            dropFrame = true;
+        }
+        if (ksyFlv.type == KSYFlvData.FLV_TYPE_VIDEO) {
+            lastSendVideoDts = ksyFlv.dts;
+        } else {
+            lastSendAudioDts = ksyFlv.dts;
+        }
+        return dropFrame;
+    }
+
+    private void statDropFrame(KSYFlvData dropped) {
+        Log.d(TAG, "drop frame !!" + dropped.isKeyframe());
     }
 
     private void statBitrate(int sent, int type) {
@@ -203,59 +235,43 @@ public class KsyRecordSender {
         }
     }
 
-
     private void reconnect() throws Exception {
-
         if (connected) {
             return;
         }
-
         _close();
-
         _set_output_url(mUrl);
-
         int conncode = _open();
-
         connected = conncode == 0 ? true : false;
     }
 
-
     public void disconnect() {
-
         _close();
-
         recordQueue.clear();
     }
 
-
     //send data to server
     public synchronized void sender(KSYFlvData ksyFlvData, int k) {
-
         if (ksyFlvData == null) {
             return;
         }
-
         if (ksyFlvData.size <= 0) {
             return;
         }
-
-
         if (k == FROM_VIDEO) { //视频数据
             frame_video++;
-
         } else if (k == FROM_AUDIO) {//音频数据
             frame_audio++;
         }
-
         int time = ksyFlvData.dts;
-
         Log.e(TAG, "k==" + k + ">>>time=" + time + "<<<frame_video==" + frame_video + ">>>frame_audio=" + frame_audio);
-
         // add video data
         synchronized (mutex) {
+            if (recordQueue.size() > MAX_QUEUE_SIZE) {
+                recordQueue.remove();
+            }
             recordQueue.add(ksyFlvData);
         }
-
     }
 
     private native int _set_output_url(String url);
