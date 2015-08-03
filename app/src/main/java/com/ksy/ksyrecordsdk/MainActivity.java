@@ -37,7 +37,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private CameraSurfaceView mSurfaceView;
     private FloatingActionButton mFab;
     private boolean mRecording = false;
-    private SurfaceHolder mSurfaceHolder;
     private KsyRecordClient client;
     private KsyRecordClientConfig config;
     private RelativeLayout mContainer;
@@ -170,16 +169,12 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         client.setConfig(config);
         client.setDisplayPreview(mSurfaceView);
         // To do
-//        client.setDropFrameFrequency();
-//        client.getNewtWorkStatusType();
     }
 
 
     private void toggleRecord() {
         if (!mRecording) {
             try {
-                // Show preview
-                mContainer.removeView(mImageView);
                 client.startRecord();
                 mRecording = true;
             } catch (KsyRecordException e) {
@@ -187,10 +182,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 Log.d(Constants.LOG_TAG, "Client Error, reason = " + e.getMessage());
             }
         } else {
-            // Here we also release
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
-            // Trick for hide preview
-            mContainer.addView(mImageView, params);
             client.stopRecord();
             mRecording = false;
             Log.d(Constants.LOG_TAG, "stop and release");
@@ -252,19 +243,16 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d(Constants.LOG_TAG, "surfaceCreated");
-        mSurfaceHolder = holder;
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         Log.d(Constants.LOG_TAG, "surfaceChanged");
-        mSurfaceHolder = holder;
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.d(Constants.LOG_TAG, "surfaceDestroyed");
-        mSurfaceHolder = null;
     }
 
     @Override

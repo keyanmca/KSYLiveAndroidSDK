@@ -62,7 +62,6 @@ public class KsyRecordClient implements KsyRecord {
     @Override
     public void startRecord() throws KsyRecordException {
         mEncodeMode = judgeEncodeMode(mContext);
-
         try {
             ksyRecordSender.start();
         } catch (IOException e) {
@@ -75,7 +74,7 @@ public class KsyRecordClient implements KsyRecord {
             if (mEncodeMode == Constants.ENCODE_MODE_MEDIA_RECORDER) {
                 setUpMp4Config(mRecordHandler);
             } else {
-                startRecordStep();
+//                startRecordStep();
             }
         } else {
             throw new KsyRecordException("Check KsyRecordClient Configuration, param should be correct");
@@ -84,7 +83,6 @@ public class KsyRecordClient implements KsyRecord {
     }
 
     private void startRecordStep() {
-        // startRtmpFlvClient();
         setUpCamera(true);
         setUpEncoder();
     }
@@ -227,7 +225,6 @@ public class KsyRecordClient implements KsyRecord {
             mCamera.release();
             mCamera = null;
         }
-
         ksyRecordSender.disconnect();
     }
 
@@ -235,12 +232,10 @@ public class KsyRecordClient implements KsyRecord {
     public void release() {
         if (mVideoSource != null) {
             mVideoSource.release();
-            mCamera = null;
             mVideoSource = null;
         }
         if (mVideoTempSource != null) {
             mVideoTempSource.release();
-            mCamera = null;
             mVideoTempSource = null;
         }
         if (mAudioSource != null) {

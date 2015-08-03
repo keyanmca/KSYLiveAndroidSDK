@@ -140,8 +140,8 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
 
     private void releaseCamera() {
         if (mCamera != null) {
+            mCamera.stopPreview();
             mCamera.release();
-            mCamera = null;
         }
     }
 
@@ -155,7 +155,6 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
             Log.d(Constants.LOG_TAG, "mRecorder release");
             mRecorder = null;
             Log.d(Constants.LOG_TAG, "mRecorder complete");
-            mCamera.lock();
         }
     }
 
@@ -174,7 +173,6 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
                     while (is.read() != 'm') ;
                     is.read(buffer, 0, 3);
                     if (buffer[0] == 'd' && buffer[1] == 'a' && buffer[2] == 't') break;
-
                     //mdat
                 }
             } catch (IOException e) {

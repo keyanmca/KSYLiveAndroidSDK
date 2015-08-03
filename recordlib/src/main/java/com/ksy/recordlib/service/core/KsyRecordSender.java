@@ -137,7 +137,7 @@ public class KsyRecordSender {
 
 
     private void cycle() {
-        while (true) {
+        while (!Thread.interrupted()) {
             //send
             if (frame_video > 1 || frame_audio > 1) {
                 KSYFlvData ksyFlv;
@@ -163,7 +163,7 @@ public class KsyRecordSender {
                     statBitrate(w, ksyFlv.type);
                 }
             } else {
-                Log.d(TAG, "frame_video ||  frame_audio  <1 -------");
+//                Log.d(TAG, "::cycle() frame_video ||  frame_audio  <1 -------");
             }
         }
     }
@@ -247,7 +247,10 @@ public class KsyRecordSender {
 
     public void disconnect() {
         _close();
+        worker.interrupt();
         recordQueue.clear();
+        frame_video = 0;
+        frame_audio = 0;
     }
 
     //send data to server
@@ -264,7 +267,7 @@ public class KsyRecordSender {
             frame_audio++;
         }
         int time = ksyFlvData.dts;
-        Log.e(TAG, "k==" + k + ">>>time=" + time + "<<<frame_video==" + frame_video + ">>>frame_audio=" + frame_audio);
+        Log.e(TAG, "::sender() k==" + k + ">>>time=" + time + "<<<frame_video==" + frame_video + ">>>frame_audio=" + frame_audio);
         // add video data
         synchronized (mutex) {
             if (recordQueue.size() > MAX_QUEUE_SIZE) {
