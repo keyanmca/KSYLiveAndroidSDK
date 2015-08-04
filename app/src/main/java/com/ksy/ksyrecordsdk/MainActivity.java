@@ -1,7 +1,9 @@
 package com.ksy.ksyrecordsdk;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.media.CamcorderProfile;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -177,11 +179,13 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             try {
                 client.startRecord();
                 mRecording = true;
+                mFab.setImageDrawable(getResources().getDrawable(R.mipmap.btn_stop));
             } catch (KsyRecordException e) {
                 e.printStackTrace();
                 Log.d(Constants.LOG_TAG, "Client Error, reason = " + e.getMessage());
             }
         } else {
+            mFab.setImageDrawable(getResources().getDrawable(R.mipmap.btn_record));
             client.stopRecord();
             mRecording = false;
             Log.d(Constants.LOG_TAG, "stop and release");
@@ -230,15 +234,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -268,21 +263,21 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         drawerToggle.syncState();
     }
 
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        if (drawerToggle.onOptionsItemSelected(item)) {
-//            return true;
-//        }
-//
-//        switch (item.getItemId()) {
-//            case R.id.action_github:
-//                String url = "https://github.com/HeinrichReimer/material-drawer";
-//                Intent i = new Intent(Intent.ACTION_VIEW);
-//                i.setData(Uri.parse(url));
-//                startActivity(i);
-//                break;
-//        }
-//
-//        return super.onOptionsItemSelected(item);
-//    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (drawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
+        switch (item.getItemId()) {
+            case R.id.action_github:
+                String url = "https://github.com/HeinrichReimer/material-drawer";
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 }
