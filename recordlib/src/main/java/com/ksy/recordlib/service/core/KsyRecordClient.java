@@ -14,6 +14,7 @@ import com.ksy.recordlib.service.recoder.RecoderVideoSource;
 import com.ksy.recordlib.service.recoder.RecoderVideoTempSource;
 import com.ksy.recordlib.service.rtmp.KSYRtmpFlvClient;
 import com.ksy.recordlib.service.util.Constants;
+import com.ksy.recordlib.service.util.NetworkMonitor;
 
 import java.io.IOException;
 import java.util.List;
@@ -43,8 +44,8 @@ public class KsyRecordClient implements KsyRecord {
     private KsyRecordClient(Context context) {
         this.mContext = context;
         mRecordHandler = new RecordHandler();
-
         ksyRecordSender = KsyRecordSender.getRecordInstance();
+        NetworkMonitor.start(context);
     }
 
 
@@ -63,7 +64,7 @@ public class KsyRecordClient implements KsyRecord {
     public void startRecord() throws KsyRecordException {
         mEncodeMode = judgeEncodeMode(mContext);
         try {
-            ksyRecordSender.start();
+            ksyRecordSender.start(mContext);
         } catch (IOException e) {
             e.printStackTrace();
             Log.e(Constants.LOG_TAG, "startRecord() : e =" + e);

@@ -243,7 +243,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + frame_length + videoExtraSize + 3] = allFrameLengthArray[3];
             Log.d(Constants.LOG_TAG, "write frame ,length =" + frame_length);
             // send
-//            sender.send(flvFrameByteArray, flvFrameByteArray.length);
+//            addToQueue.send(flvFrameByteArray, flvFrameByteArray.length);
 
             //添加音频数据到队列
             KSYFlvData ksyAudio = new KSYFlvData();
@@ -252,13 +252,13 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             ksyAudio.dts = (int) ts;
             ksyAudio.type = 12;
 
-            ksyRecordSender.sender(ksyAudio, FROM_AUDIO_DATA);
+            ksyRecordSender.addToQueue(ksyAudio, FROM_AUDIO_DATA);
 
            /* if (!isFirstDelay) {
                 delayHandler.postDelayed(runnableAudioSend, 500);
 
             } else {
-                ksyRecordSender.sender(ksyAudio, FROM_AUDIO_DATA);
+                ksyRecordSender.addToQueue(ksyAudio, FROM_AUDIO_DATA);
             }*/
 
 
@@ -316,7 +316,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
     /*Runnable runnableAudioSend = new Runnable() {
         @Override
         public void run() {
-            ksyRecordSender.sender(ksyAudio, FROM_AUDIO_DATA);
+            ksyRecordSender.addToQueue(ksyAudio, FROM_AUDIO_DATA);
             isFirstDelay = true;
         }
     };*/

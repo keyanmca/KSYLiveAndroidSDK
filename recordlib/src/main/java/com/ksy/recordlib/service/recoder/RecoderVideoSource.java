@@ -320,7 +320,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
         ksyVideo.type = 11;
         ksyVideo.frameType = type;
 
-        ksyVideoSender.sender(ksyVideo, FROM_VIDEO_DATA);
+        ksyVideoSender.addToQueue(ksyVideo, FROM_VIDEO_DATA);
 
         /*for (int i = 0; i < flvFrameByteArray.length; i++) {
             if (recordsum + i < buffer.length) {

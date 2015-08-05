@@ -23,17 +23,17 @@ public abstract class KsyMediaSource implements Runnable {
 
     public abstract void release();
 
-//    protected KsyRecordSender sender;
+//    protected KsyRecordSender addToQueue;
 
     /*protected KsyMediaSource(String url, int i) {
         Log.e("lixp", "KsyMediaSource  27  ....");
 
 //        KsyRecordSender.getInstance().setUrl(url, i);
 
-        sender = new KsyRecordSender(url, i);
+        addToQueue = new KsyRecordSender(url, i);
 
       *//*  try {
-            sender.start();
+            addToQueue.start();
 
         } catch (Exception e) {
             Log.e("lixp","KsyMediaSource   e = " + e);
