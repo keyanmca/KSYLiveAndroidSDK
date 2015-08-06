@@ -65,7 +65,7 @@ public class ConfigItem {
                 currentValue = config.getVideoWidth() + "x" + config.getVideoHeigh();
                 break;
             case 6:
-                currentValue = config.getUrl();
+                currentValue = "click to set";
                 break;
         }
         return currentValue;

@@ -25,6 +25,7 @@ import android.util.Log;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -34,6 +35,26 @@ public class CameraHelper {
 
     public static final int MEDIA_TYPE_IMAGE = 1;
     public static final int MEDIA_TYPE_VIDEO = 2;
+
+    private static HashMap<Integer, List<Camera.Size>> camearSizeTable = new HashMap<>(2);
+
+
+    public static List<Camera.Size> getSupportCameraSize(int cameraType) {
+        List<Camera.Size> sizes = camearSizeTable.get(cameraType);
+        if (sizes == null) {
+            android.hardware.Camera camera = CameraHelper.getDefaultCamera(cameraType);
+            if (camera != null) {
+                sizes = camera.getParameters().getSupportedVideoSizes();
+                if (sizes == null) {
+                    sizes = camera.getParameters().getSupportedPreviewSizes();
+                }
+                camearSizeTable.put(cameraType, sizes);
+
+            }
+            camera.release();
+        }
+        return sizes;
+    }
 
     /**
      * Iterate over supported camera preview sizes to see which one best fits the

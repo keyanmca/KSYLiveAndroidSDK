@@ -174,21 +174,29 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     }
 
 
+    private void stopRecord() {
+        mFab.setImageDrawable(getResources().getDrawable(R.mipmap.btn_record));
+        client.stopRecord();
+        mRecording = false;
+        Log.d(Constants.LOG_TAG, "stop and release");
+    }
+
+    private void startRecord() {
+        try {
+            client.startRecord();
+            mRecording = true;
+            mFab.setImageDrawable(getResources().getDrawable(R.mipmap.btn_stop));
+        } catch (KsyRecordException e) {
+            e.printStackTrace();
+            Log.d(Constants.LOG_TAG, "Client Error, reason = " + e.getMessage());
+        }
+    }
+
     private void toggleRecord() {
         if (!mRecording) {
-            try {
-                client.startRecord();
-                mRecording = true;
-                mFab.setImageDrawable(getResources().getDrawable(R.mipmap.btn_stop));
-            } catch (KsyRecordException e) {
-                e.printStackTrace();
-                Log.d(Constants.LOG_TAG, "Client Error, reason = " + e.getMessage());
-            }
+            startRecord();
         } else {
-            mFab.setImageDrawable(getResources().getDrawable(R.mipmap.btn_record));
-            client.stopRecord();
-            mRecording = false;
-            Log.d(Constants.LOG_TAG, "stop and release");
+            stopRecord();
         }
     }
 
@@ -197,44 +205,19 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     * Activity Life Circle
     * */
     @Override
-    protected void onStart() {
-        super.onStart();
-        Log.d(Constants.LOG_TAG, "onStart");
+    protected void onStop() {
+        super.onStop();
+        stopRecord();
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d(Constants.LOG_TAG, "onPause");
-        client.release();
-        mRecording = false;
-        Log.d(Constants.LOG_TAG, "release");
+    protected void onRestart() {
+        super.onRestart();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(Constants.LOG_TAG, "onResume");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(Constants.LOG_TAG, "onDestroy");
-        client.release();
-    }
-
-    /*
-    *
-    * Surface Holder Callback
-    * */
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-
+    /**
+     * Surface Holder Callback
+     */
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d(Constants.LOG_TAG, "surfaceCreated");
@@ -264,20 +247,24 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (drawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
-
         switch (item.getItemId()) {
             case R.id.action_github:
-                String url = "https://github.com/HeinrichReimer/material-drawer";
+                String url = "https://github.com/EflakeEver/KsyRecordSdk";
                 Intent i = new Intent(Intent.ACTION_VIEW);
                 i.setData(Uri.parse(url));
                 startActivity(i);
                 break;
         }
-
         return super.onOptionsItemSelected(item);
     }
 }

@@ -7,6 +7,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.TextureView;
+import android.view.ViewGroup;
 
 import com.ksy.recordlib.service.exception.KsyRecordException;
 import com.ksy.recordlib.service.recoder.RecoderAudioSource;
@@ -38,6 +39,12 @@ public class KsyRecordClient implements KsyRecord {
 
     private KsyRecordSender ksyRecordSender;
 
+    private STATE clientState = STATE.STOP;
+
+    enum STATE {
+        RECORDING, STOP, PAUSE, ERROR
+    }
+
     private KsyRecordClient() {
     }
 
@@ -62,6 +69,9 @@ public class KsyRecordClient implements KsyRecord {
     * */
     @Override
     public void startRecord() throws KsyRecordException {
+        if (clientState == STATE.RECORDING) {
+            return;
+        }
         mEncodeMode = judgeEncodeMode(mContext);
         try {
             ksyRecordSender.start(mContext);
@@ -80,7 +90,7 @@ public class KsyRecordClient implements KsyRecord {
         } else {
             throw new KsyRecordException("Check KsyRecordClient Configuration, param should be correct");
         }
-
+        clientState = STATE.RECORDING;
     }
 
     private void startRecordStep() {
@@ -128,18 +138,23 @@ public class KsyRecordClient implements KsyRecord {
             } else {
                 mCamera = Camera.open();
             }
-            mCamera.setDisplayOrientation(90);
+            mCamera.setDisplayOrientation(0);
             Camera.Parameters parameters = mCamera.getParameters();
             List<Camera.Size> mSupportedPreviewSizes = parameters.getSupportedPreviewSizes();
             Camera.Size optimalSize = CameraHelper.getOptimalPreviewSize(mSupportedPreviewSizes,
-                    mSurfaceView.getWidth(), mSurfaceView.getHeight());
-            parameters.setPreviewSize(optimalSize.width, optimalSize.height);
+                    mSurfaceView.getHeight(), mSurfaceView.getWidth());
+            ViewGroup.LayoutParams params = mSurfaceView.getLayoutParams();
+
             if (parameters.getSupportedFocusModes().contains(
                     Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
                 parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
             }
             mCamera.setParameters(parameters);
             if (needPreview) {
+                params.height = optimalSize.height;
+                params.width = optimalSize.width;
+                mSurfaceView.setLayoutParams(params);
+                parameters.setPreviewSize(optimalSize.width, optimalSize.height);
                 try {
                     if (mSurfaceView != null) {
                         mCamera.setPreviewDisplay(mSurfaceView.getHolder());
@@ -210,6 +225,9 @@ public class KsyRecordClient implements KsyRecord {
 
     @Override
     public void stopRecord() {
+        if (clientState != STATE.RECORDING) {
+            return;
+        }
         if (mVideoSource != null) {
             mVideoSource.stop();
             mVideoSource = null;
@@ -227,6 +245,7 @@ public class KsyRecordClient implements KsyRecord {
             mCamera = null;
         }
         ksyRecordSender.disconnect();
+        clientState = STATE.STOP;
     }
 
     @Override

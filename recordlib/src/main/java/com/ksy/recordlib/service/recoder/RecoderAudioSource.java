@@ -241,7 +241,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + frame_length + videoExtraSize + 1] = allFrameLengthArray[1];
             flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + frame_length + videoExtraSize + 2] = allFrameLengthArray[2];
             flvFrameByteArray[FRAME_DEFINE_HEAD_LENGTH + frame_length + videoExtraSize + 3] = allFrameLengthArray[3];
-            Log.d(Constants.LOG_TAG, "write frame ,length =" + frame_length);
+//            Log.d(Constants.LOG_TAG, "write frame ,length =" + frame_length);
             // send
 //            addToQueue.send(flvFrameByteArray, flvFrameByteArray.length);
 

@@ -6,7 +6,7 @@ package com.ksy.recordlib.service.util;
 public class Constants {
     public static final String LOG_TAG = "ksy-record-sdk";
     // Voice Encode Default
-    public static final String URL_DEFAULT = "rtmp://192.168.135.185/myTestLive/eflakee2333";
+    public static final String URL_DEFAULT = "rtmp://192.168.135.185/myTestLive/eflakee2330";
     public static final int ENCODE_MODE_MEDIA_RECORDER = 0;
     public static final int ENCODE_MODE_MEDIA_CODEC = 1;
     public static final int ENCODE_MODE_WEBRTC = 2;
@@ -39,7 +39,7 @@ public class Constants {
     public static final int CONFIG_VIDEO_BITRATE_500K = 500 * 1000;
     public static final int CONFIG_VIDEO_BITRATE_750K = 750 * 1000;
     public static final int CONFIG_VIDEO_BITRATE_1000K = 1000 * 1000;
-    public static final int CONFIG_VIDEO_BITRATE_1500K = 1;
+    public static final int CONFIG_VIDEO_BITRATE_1500K = 1500 * 1000;
 
     public static final int CONFIG_VIDEO_FRAME_RATE_10 = 10;
     public static final int CONFIG_VIDEO_FRAME_RATE_15 = 15;

@@ -2,6 +2,7 @@ package com.ksy.ksyrecordsdk.com.ksy.ksyrecordsdk.config;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.util.Log;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.heinrichreimersoftware.materialdrawer.structure.DrawerItem;
@@ -22,6 +23,7 @@ public class DrawerItemConfigAdapter {
     private ArrayList<DrawerItem> drawerItems;
     private Context context;
 
+    private static String TAG = "DrawerItemConfigAdapter";
 
     public List<DrawerItem> getItemViews() {
         if (config == null || context == null) {
@@ -33,8 +35,10 @@ public class DrawerItemConfigAdapter {
             DrawerItem drawerItem = new DrawerItem();
             drawerItem.setTextPrimary(configItem.configName);
             drawerItem.setTextSecondary(configItem.currentValueString(config));
+            drawerItem.setTextMode(DrawerItem.TWO_LINE);
             drawerItems.add(drawerItem);
         }
+        Log.e(TAG, "item.size" + items.size() + "drawerItems" + drawerItems.size());
         return drawerItems;
     }
 
@@ -98,7 +102,7 @@ public class DrawerItemConfigAdapter {
         videoFrameRate.index = 2;
         videoFrameRate.configName = context.getString(R.string.video_frame_rate);
         videoFrameRate.configValue = new int[]{Constants.CONFIG_VIDEO_FRAME_RATE_10, Constants.CONFIG_VIDEO_FRAME_RATE_15, Constants.CONFIG_VIDEO_FRAME_RATE_21, Constants.CONFIG_VIDEO_FRAME_RATE_30};
-        videoFrameRate.configValueName = new String[]{"15fps", "21fps", "30fps"};
+        videoFrameRate.configValueName = new String[]{"10fps", "15fps", "21fps", "30fps"};
         items.add(videoFrameRate);
 
         ConfigItem videoBitrate = new ConfigItem();
@@ -128,25 +132,20 @@ public class DrawerItemConfigAdapter {
     }
 
     private void makeVideoProfile(ConfigItem item) {
-        android.hardware.Camera camera = CameraHelper.getDefaultCamera(config.getCameraType());
-        if (camera != null) {
-            List<Camera.Size> sizes = camera.getParameters().getSupportedVideoSizes();
-            camera.release();
-            if (sizes != null) {
-                item.configValueName = new String[sizes.size()];
-                item.configValue = new int[sizes.size()];
-                int i = 0;
-                for (Camera.Size size : sizes) {
-                    item.configValue[i] = CameraHelper.cameraSizeToInt(size.width, size.height);
-                    StringBuffer builder = new StringBuffer();
-                    builder.append(size.width);
-                    builder.append("x");
-                    builder.append(size.height);
-                    item.configValueName[i] = builder.toString();
-                    i++;
-                }
+        List<Camera.Size> sizes = CameraHelper.getSupportCameraSize(config.getCameraType());
+        if (sizes != null) {
+            item.configValueName = new String[sizes.size()];
+            item.configValue = new int[sizes.size()];
+            int i = 0;
+            for (Camera.Size size : sizes) {
+                item.configValue[i] = CameraHelper.cameraSizeToInt(size.width, size.height);
+                StringBuffer builder = new StringBuffer();
+                builder.append(size.width);
+                builder.append("x");
+                builder.append(size.height);
+                item.configValueName[i] = builder.toString();
+                i++;
             }
-
         }
     }
 

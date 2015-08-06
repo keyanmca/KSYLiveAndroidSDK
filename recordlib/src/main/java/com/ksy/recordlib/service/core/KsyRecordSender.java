@@ -83,7 +83,6 @@ public class KsyRecordSender {
     }
 
     private KsyRecordSender() {
-//        recordQueue = new LinkedList<>();
         recordPQueue = new PriorityQueue<>(10, new Comparator<KSYFlvData>() {
             @Override
             public int compare(KSYFlvData lhs, KSYFlvData rhs) {
@@ -131,15 +130,15 @@ public class KsyRecordSender {
                 Thread.sleep(10);
             }
             if (frame_video > 1 || frame_audio > 1) {
-                KSYFlvData ksyFlv;
+                KSYFlvData ksyFlv = null;
                 synchronized (mutex) {
-//                    Collections.sort(recordQueue, new Comparator<KSYFlvData>() {
-//                        @Override
-//                        public int compare(KSYFlvData lhs, KSYFlvData rhs) {
-//                            return lhs.dts - rhs.dts;
-//                        }
-//                    });
-                    ksyFlv = recordPQueue.remove();
+                    if (recordPQueue.size() > 0) {
+                        ksyFlv = recordPQueue.remove();
+                    } else {
+                        frame_audio = 0;
+                        frame_video = 0;
+                        continue;
+                    }
                 }
                 if (ksyFlv.type == KSYFlvData.FLV_TYPE_VIDEO) {
                     frame_video--;
@@ -200,6 +199,7 @@ public class KsyRecordSender {
 
     private void statBitrate(int sent, int type) {
         if (sent == -1) {
+            connected = false;
             Log.e(TAG, "statBitrate send frame failed!");
         } else {
             Log.d(TAG, "statBitrate send successful sent =" + sent + "type= " + type);
@@ -268,11 +268,14 @@ public class KsyRecordSender {
     }
 
     private void reconnect() {
-        Log.e(TAG, "reconnecting ..");
-        Log.e(TAG, "close .." + _close());
-        Log.e(TAG, "_set_output_url .." + _set_output_url(mUrl));
-        connected = _open() == 0;
-        Log.e(TAG, "opens result .." + connected);
+        if (!connected) {
+            Log.e(TAG, "reconnecting ...");
+            Log.e(TAG, "close .." + _close());
+            Log.e(TAG, "_set_output_url .." + _set_output_url(mUrl));
+            int result = _open();
+            connected = result == 0;
+            Log.e(TAG, "opens result ..>" + result);
+        }
     }
 
     private void pauseSend() {
@@ -281,7 +284,9 @@ public class KsyRecordSender {
 
     public void disconnect() {
         _close();
-        worker.interrupt();
+        if (worker.isAlive()) {
+            worker.interrupt();
+        }
         recordPQueue.clear();
         frame_video = 0;
         frame_audio = 0;
@@ -289,11 +294,15 @@ public class KsyRecordSender {
     }
 
     public void setRecorderData(String url, int j) {
+        Log.e(TAG, "setRecorderData ..");
         mUrl = url;
-        int i = _set_output_url(url);
+        int i = _set_output_url(mUrl);
+        Log.e(TAG, "_set_output_url .." + i);
         //3视频  0音频
         if (j == FIRST_OPEN) {
-            connected = _open() == 0;
+            int k = _open();
+            connected = k == 0;
+            Log.e(TAG, "connected .." + k);
         }
     }
 
