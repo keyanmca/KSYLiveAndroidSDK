@@ -6,6 +6,8 @@ package com.ksy.recordlib.service.util;
 public class Constants {
     public static final String LOG_TAG = "ksy-record-sdk";
     // Voice Encode Default
+//    public static final String URL_DEFAULT = "rtmp://xiaoyi.uplive.ksyun.com:80/live/hansen2?public=1&expire=1710333230&nonce=12341234&accesskey=2HITWMQXL2VBB3XMAEHQ&signature=1wgD2F56CDUizTp0%2fj3DJ%2fasSsY%3d";
+//    public static final String URL_DEFAULT = "rtmp://115.231.96.121:80/live/hansen223?public=1&expire=1710333230&nonce=12341234&accesskey=2HITWMQXL2VBB3XMAEHQ&signature=1wgD2F56CDUizTp0%2fj3DJ%2fasSsY%3d";
     public static final String URL_DEFAULT = "rtmp://192.168.135.185/myTestLive/eflakee2330";
     public static final int ENCODE_MODE_MEDIA_RECORDER = 0;
     public static final int ENCODE_MODE_MEDIA_CODEC = 1;

@@ -205,8 +205,10 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
         if (isSpsFrameSended) {
             parseVideo();
         } else {
-            ts = startVideoTime - RecoderAudioSource.startAudioTime;
-            ts += delay;
+            delay = startVideoTime - RecoderAudioSource.startAudioTime;
+            if (Math.abs(delay) > 2000) {
+                delay = 0;
+            }
             content.clear();
             // Step One ,insert in header,sps & pps prefix & data
             byte[] sps_prefix = hexStringToBytes("0142C028FFE1");

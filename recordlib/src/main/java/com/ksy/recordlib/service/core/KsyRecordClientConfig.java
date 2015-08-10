@@ -229,8 +229,8 @@ public class KsyRecordClientConfig {
         if (mVideoBitRate > 0) {
             mediaRecorder.setVideoEncodingBitRate(mVideoBitRate);
         }
-        if (mVideoFrameRate >= 30) {
-            mediaRecorder.setVideoFrameRate(mVideoFrameRate);
+        if (mVideoFrameRate > 0) {
+//            mediaRecorder.setCaptureRate(23f);
         }
         if (mVideoWidth > 0 && mVideoHeigh > 0) {
             mediaRecorder.setVideoSize(mVideoWidth, mVideoHeigh);

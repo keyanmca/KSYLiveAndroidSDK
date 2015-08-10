@@ -65,6 +65,10 @@ public class KsyRecordSender {
     private long lastRefreshTime;
     private long lastSendVideoDts;
     private long lastSendAudioDts;
+    private long lastSendVideoTs;
+    private long lastSendAudioTs;
+    private Speedometer vidoeFps = new Speedometer();
+    private Speedometer audioFps = new Speedometer();
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -99,10 +103,8 @@ public class KsyRecordSender {
     public String getAVBitrate() {
         return "currentTransferVideoBr=" + currentVideoBitrate +
                 ", currentTransferAudiobr:" + currentAudioBitrate +
-                ", encodeVideobr:" + encodeVideoBitrate +
-                ", encodeAudiobr:" + encodeAudioBitrate +
-                ", avgInstantaneousVideobr:" + avgInstantaneousVideoBitrate +
-                ", avgInstantaneousAudiobr:" + avgInstantaneousAudioBitrate + ",size=" + recordPQueue.size();
+                "\n,vFps =" + vidoeFps.getSpeed() + "\naFps=" + audioFps.getSpeed() +
+                "\n, lastSendAudioTs:" + lastSendAudioTs + "det=" + (lastSendAudioTs - lastSendVideoDts) + ",size=" + recordPQueue.size();
     }
 
 
@@ -142,8 +144,10 @@ public class KsyRecordSender {
                 }
                 if (ksyFlv.type == KSYFlvData.FLV_TYPE_VIDEO) {
                     frame_video--;
+                    lastSendVideoTs = ksyFlv.dts;
                 } else if (ksyFlv.type == KSYFlvData.FLV_TYTPE_AUDIO) {
                     frame_audio--;
+                    lastSendAudioTs = ksyFlv.dts;
                 }
                 if (needDropFrame(ksyFlv)) {
                     statDropFrame(ksyFlv);
@@ -154,20 +158,23 @@ public class KsyRecordSender {
                 }
             }
         }
-
     }
 
     private boolean needDropFrame(KSYFlvData ksyFlv) {
         boolean dropFrame;
         int queueSize = recordPQueue.size();
         int dts = ksyFlv.dts;
+        long duration = dts - lastSendVideoDts;
+        if (duration == 0) {
+            duration = 1;
+        }
         if (queueSize < LEVEL1_QUEUE_SZIE) {
             dropFrame = false;
         } else if (queueSize < LEVEL2_QUEUE_SZIE) {
             if (ksyFlv.type == KSYFlvData.FLV_TYTPE_AUDIO || ksyFlv.isKeyframe()) {
                 dropFrame = false;
             } else {
-                int needKps = (int) (ksyFlv.size / 1024 * (1000) / (dts - lastSendVideoDts));
+                int needKps = (int) (ksyFlv.size / 1024 * (1000) / duration);
                 dropFrame = (needKps > (avgInstantaneousAudioBitrate + avgInstantaneousVideoBitrate) / 2);
             }
         } else if (queueSize < MAX_QUEUE_SIZE) {
@@ -176,9 +183,9 @@ public class KsyRecordSender {
             } else {
                 int needKps;
                 if (ksyFlv.type == KSYFlvData.FLV_TYPE_VIDEO) {
-                    needKps = (int) (ksyFlv.size / 1024 * (1000) / (dts - lastSendVideoDts));
+                    needKps = (int) (ksyFlv.size / 1024 * (1000) / duration);
                 } else {
-                    needKps = (int) (ksyFlv.size / 1024 * (1000) / (dts - lastSendAudioDts));
+                    needKps = (int) (ksyFlv.size / 1024 * (1000) / duration);
                 }
                 dropFrame = (needKps > (avgInstantaneousAudioBitrate + avgInstantaneousVideoBitrate) / 2);
             }
@@ -216,7 +223,7 @@ public class KsyRecordSender {
                 audioTime += time;
             }
             if (time > 500) {
-                Log.e(TAG, "statBitrate time > 500" + time);
+                Log.e(TAG, "statBitrate time > 500ms network maybe poor! Time use:" + time);
             }
             if (escape > 1000) {
                 encodeVideoBitrate = (float) videoByteSum / escape;
@@ -242,8 +249,10 @@ public class KsyRecordSender {
             return;
         }
         if (k == FROM_VIDEO) { //视频数据
+            vidoeFps.tickTock();
             frame_video++;
         } else if (k == FROM_AUDIO) {//音频数据
+            audioFps.tickTock();
             frame_audio++;
         }
 //        int time = ksyFlvData.dts;
@@ -314,5 +323,39 @@ public class KsyRecordSender {
 
     private native int _write(byte[] buffer, int size);
 
+
+    public static class Speedometer {
+        private int time;
+        private long startTime;
+
+        public float getSpeedAndRestart() {
+            float speed = getSpeed();
+            time = 0;
+            return speed;
+        }
+
+        public void tickTock() {
+            if (time == 0) {
+                startTime = System.currentTimeMillis();
+            }
+            time++;
+        }
+
+        public void start() {
+            time = 0;
+            startTime = System.currentTimeMillis();
+        }
+
+
+        public float getSpeed() {
+            long lapse = System.currentTimeMillis() - startTime;
+            if (lapse > 0) {
+                return (float) time / lapse * 1000;
+            } else {
+                return 0f;
+            }
+        }
+
+    }
 }
 
