@@ -1,5 +1,7 @@
 package com.ksy.recordlib.service.core;
 
+import android.util.Log;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -14,6 +16,7 @@ public abstract class KsyMediaSource implements Runnable {
     protected FileChannel inputChannel;
     protected byte[] header = new byte[4];
     protected long ts = 0;
+    protected static ClockSync sync = new ClockSync();
 
     public abstract void prepare();
 
@@ -69,71 +72,59 @@ public abstract class KsyMediaSource implements Runnable {
         return sum;
     }
 
+    protected static class ClockSync {
 
-    /**
-     * Used in packetizers to estimate timestamps in RTP packets.
-     */
-    protected static class Statistics {
 
-        public final static String TAG = "Statistics";
+        private long frameSumDuration = 0;
+        private long frameSumCount = 10000;
+        private boolean inited = false;
+        private double lastTS = 0;
+        private long lastSysTime = 0;
+        private long syncTime = 0;
 
-        private int count = 700, c = 0;
-        private float m = 0, q = 0;
-        private long elapsed = 0;
-        private long start = 0;
-        private long duration = 0;
-        private long period = 10000000000L;
-        private boolean initoffset = false;
-
-        public Statistics() {
+        public void reset(long pAudioTime) {
+            syncTime = pAudioTime;
+            Log.e("ClockSync", "pAudioTime==== " + pAudioTime);
         }
 
-        public Statistics(int count, int period) {
-            this.count = count;
-            this.period = period;
-        }
-
-        public void reset() {
-            initoffset = false;
-            q = 0;
-            m = 0;
-            c = 0;
-            elapsed = 0;
-            start = 0;
-            duration = 0;
-        }
-
-        public void push(long value) {
-            elapsed += value;
-            if (elapsed > period) {
-                elapsed = 0;
-                long now = System.nanoTime();
-                if (!initoffset || (now - start < 0)) {
-                    start = now;
-                    duration = 0;
-                    initoffset = true;
-                }
-                // Prevents drifting issues by comparing the real duration of the
-                // stream with the sum of all temporal lengths of RTP packets.
-                value += (now - start) - duration;
-                //Log.d(TAG, "sum1: "+duration/1000000+" sum2: "+(now-start)/1000000+" drift: "+((now-start)-duration)/1000000+" v: "+value/1000000);
-            }
-            if (c < 5) {
-                // We ignore the first 20 measured values because they may not be accurate
-                c++;
-                m = value;
+        public long getTime() {
+            long d = 0;
+            long delta = 0;
+            if (!inited) {
+                frameSumCount = 10000;
+                frameSumDuration = frameSumCount * 33;
+                lastSysTime = System.currentTimeMillis();
+                lastTS = 0;
+                syncTime = 0;
+                inited = true;
             } else {
-                m = (m * q + value) / (q + 1);
-                if (q < count) q++;
+                long currentTime = System.currentTimeMillis();
+                d = currentTime - lastSysTime;
+                lastSysTime = currentTime;
+                frameSumDuration += d;
+                frameSumCount++;
+                long diff = (long) (syncTime - lastTS);
+                delta = 0;
+                if ((diff) > 500) {
+                    delta = (long) (1f / 3 * frameSumDuration / frameSumCount);
+                } else {
+                    delta = (long) (-1f / 3 * frameSumDuration / frameSumCount);
+                }
+                lastTS += 1.0f * frameSumDuration / frameSumCount + delta;
+
             }
+            Log.e("ClockSync", "pVideoTime**** " + lastTS + " d=" + d + " delta=" + delta);
+            if (delta > 0) {
+                Log.e("ClockSync", "delat>0!!!");
+            }
+            return (long) lastTS;
+
         }
 
-        public long average() {
-            long l = (long) m;
-            duration += l;
-            return l;
+        public void clear() {
+            inited = false;
         }
-
     }
+
 
 }

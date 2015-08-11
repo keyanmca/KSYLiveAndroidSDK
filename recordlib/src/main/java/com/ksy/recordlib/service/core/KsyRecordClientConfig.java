@@ -196,7 +196,7 @@ public class KsyRecordClientConfig {
         if (mediaRecorder == null) {
             throw new IllegalArgumentException("mediaRecorder is null");
         }
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
         if (type == MEDIA_SETP) {
             mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         } else if (type == MEDIA_TEMP) {
@@ -230,7 +230,7 @@ public class KsyRecordClientConfig {
             mediaRecorder.setVideoEncodingBitRate(mVideoBitRate);
         }
         if (mVideoFrameRate > 0) {
-//            mediaRecorder.setCaptureRate(23f);
+//            mediaRecorder.setCaptureRate(24);
         }
         if (mVideoWidth > 0 && mVideoHeigh > 0) {
             mediaRecorder.setVideoSize(mVideoWidth, mVideoHeigh);

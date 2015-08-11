@@ -131,7 +131,7 @@ public class KsyRecordSender {
             while (!connected) {
                 Thread.sleep(10);
             }
-            if (frame_video > 1 || frame_audio > 1) {
+            if (frame_video > 1 && frame_audio > 1) {
                 KSYFlvData ksyFlv = null;
                 synchronized (mutex) {
                     if (recordPQueue.size() > 0) {
@@ -255,8 +255,6 @@ public class KsyRecordSender {
             audioFps.tickTock();
             frame_audio++;
         }
-//        int time = ksyFlvData.dts;
-//        Log.e(TAG, "::addToQueue() k==" + k + ">>>time=" + time + "<<<frame_video==" + frame_video + ">>>frame_audio=" + frame_audio);
         // add video data
         synchronized (mutex) {
             if (recordPQueue.size() > MAX_QUEUE_SIZE) {

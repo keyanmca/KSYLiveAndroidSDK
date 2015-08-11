@@ -46,11 +46,10 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
     private ParcelFileDescriptor[] piple;
     private boolean mRunning = false;
     private String path;
-    private long delay = 0;
+    //    private long delay = 0;
     private long oldTime = 0;
     private long newTime = 0;
     private long duration = 0;
-    private Statistics stats = new Statistics();
     private int length;
     private int type;
     private String pps;
@@ -101,7 +100,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
             e.printStackTrace();
             release();
         }
-        delay = 1000 / 20;
+//        delay = 1000 / 20;
         mRecorder.setOutputFile(this.piple[1].getFileDescriptor());
         try {
             mRecorder.setOnInfoListener(this);
@@ -136,6 +135,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
         mRunning = false;
         releaseRecorder();
         releaseCamera();
+        sync.clear();
     }
 
     private void releaseCamera() {
@@ -190,8 +190,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
                /* duration = System.currentTimeMillis() - oldTime;
                 stats.push(duration);
                 delay = stats.average();*/
-
-                delay = 33;
+//                delay = 33;
             }
         }
         Log.d(Constants.LOG_TAG, "exiting video loop");
@@ -205,10 +204,10 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
         if (isSpsFrameSended) {
             parseVideo();
         } else {
-            delay = startVideoTime - RecoderAudioSource.startAudioTime;
-            if (Math.abs(delay) > 2000) {
-                delay = 0;
-            }
+//            delay = startVideoTime - RecoderAudioSource.startAudioTime;
+//            if (Math.abs(delay) > 2000) {
+//                delay = 0;
+//            }
             content.clear();
             // Step One ,insert in header,sps & pps prefix & data
             byte[] sps_prefix = hexStringToBytes("0142C028FFE1");
@@ -238,7 +237,7 @@ public class RecoderVideoSource extends KsyMediaSource implements MediaRecorder.
             // 0-3 length,4 type
             int headerResult = fill(header, 0, 4);
             Log.d(Constants.LOG_TAG, "header size = " + 4 + "header read result = " + headerResult);
-            ts += delay;
+            ts = sync.getTime();
             Log.d(Constants.LOG_TAG, "timestamp = " + ts);
             length = (header[0] & 0xFF) << 24 | (header[1] & 0xFF) << 16 | (header[2] & 0xFF) << 8 | (header[3] & 0xFF);
             if (length > mConfig.getVideoBitRate() * 5 || length < 0) {

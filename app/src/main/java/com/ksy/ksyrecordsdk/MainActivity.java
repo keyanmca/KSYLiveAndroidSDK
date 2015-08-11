@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         // Keep screen on
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         KsyRecordClientConfig.Builder builder = new KsyRecordClientConfig.Builder();
-        builder.setVideoProfile(CamcorderProfile.QUALITY_720P).setUrl(Constants.URL_DEFAULT);
+        builder.setVideoProfile(CamcorderProfile.QUALITY_480P).setUrl(Constants.URL_DEFAULT);
         config = builder.build();
     }
 

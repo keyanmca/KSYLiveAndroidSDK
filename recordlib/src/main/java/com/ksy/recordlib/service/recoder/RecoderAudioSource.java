@@ -37,8 +37,8 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
     private boolean mRunning;
     private long oldTime = 0;
     private long duration = 0;
-    private Statistics stats = new Statistics();
-    private long delay = 0;
+
+    private double delay = 0;
     private int length;
     private byte[] content;
     private int sum;
@@ -201,6 +201,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             }
             // make flv
             ts += delay;
+            sync.reset(ts);
             flvFrameByteArray = new byte[FRAME_DEFINE_HEAD_LENGTH + frame_length + videoExtraSize + FRAME_DEFINE_FOOTER_LENGTH];
             flvFrameByteArray[0] = (byte) FRAME_DEFINE_TYPE_AUDIO;
             dataLengthArray = intToByteArray(frame_length + videoExtraSize);
