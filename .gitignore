@@ -1,7 +1,10 @@
 .gradle
 /local.properties
-/.idea/workspace.xml
-/.idea/libraries
+/.idea
+## File-based project format
+*.ipr
+*.iws
+*.iml
 .DS_Store
 /build
 /captures
