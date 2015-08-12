@@ -18,22 +18,19 @@ public class ConfigItem {
     public int currentValue(KsyRecordClientConfig config) {
         int currentValueString = 0;
         switch (index) {
-            case 0:
+            case Constants.SETTING_AUDIO_SAMPLE_RATE:
                 currentValueString = config.getAudioSampleRate();
                 break;
-            case 1:
+            case Constants.SETTING_AUDIO_BITRATE:
                 currentValueString = config.getAudioBitRate();
                 break;
-            case 2:
-                currentValueString = config.getVideoFrameRate();
-                break;
-            case 3:
+            case Constants.SETTING_VIDEO_BITRATE:
                 currentValueString = config.getVideoBitRate();
                 break;
-            case 4:
+            case Constants.SETTING_CAMERY_TYPE:
                 currentValueString = config.getCameraType();
                 break;
-            case 5:
+            case Constants.SETTING_VIDEO_SIZE:
                 currentValueString = CameraHelper.cameraSizeToInt(config.getVideoWidth(), config.getVideoHeigh());
                 break;
         }
@@ -46,25 +43,22 @@ public class ConfigItem {
         }
         String currentValue = "not set";
         switch (index) {
-            case 0:
+            case Constants.SETTING_AUDIO_SAMPLE_RATE:
                 currentValue = config.getAudioSampleRate() + "Hz";
                 break;
-            case 1:
+            case Constants.SETTING_AUDIO_BITRATE:
                 currentValue = config.getAudioBitRate() / 1000 + "Kbps";
                 break;
-            case 2:
-                currentValue = config.getVideoFrameRate() + "fps";
-                break;
-            case 3:
+            case Constants.SETTING_VIDEO_BITRATE:
                 currentValue = config.getVideoBitRate() / 1000 + "Kbps";
                 break;
-            case 4:
+            case Constants.SETTING_CAMERY_TYPE:
                 currentValue = config.getCameraType() == Constants.CONFIG_CAMERA_TYPE_BACK ? "back" : "front";
                 break;
-            case 5:
+            case Constants.SETTING_VIDEO_SIZE:
                 currentValue = config.getVideoWidth() + "x" + config.getVideoHeigh();
                 break;
-            case 6:
+            case Constants.SETTING_URL:
                 currentValue = "click to set";
                 break;
         }
@@ -74,26 +68,23 @@ public class ConfigItem {
 
     public void changeValue(KsyRecordClientConfig config, int selected, String value) {
         switch (index) {
-            case 0:
+            case Constants.SETTING_AUDIO_SAMPLE_RATE:
                 config.setmAudioSampleRate(configValue[selected]);
                 break;
-            case 1:
+            case Constants.SETTING_AUDIO_BITRATE:
                 config.setmAudioBitRate(configValue[selected]);
                 break;
-            case 2:
-                config.setmVideoFrameRate(configValue[selected]);
-                break;
-            case 3:
+            case Constants.SETTING_VIDEO_BITRATE:
                 config.setmVideoBitRate(configValue[selected]);
                 break;
-            case 4:
+            case Constants.SETTING_CAMERY_TYPE:
                 config.setmCameraType(configValue[selected]);
                 break;
-            case 5:
+            case Constants.SETTING_VIDEO_SIZE:
                 config.setmVideoWidth(CameraHelper.intToCameraWidth(configValue[selected]));
                 config.setmVideoHeigh(CameraHelper.intToCameraHeight(configValue[selected]));
                 break;
-            case 6:
+            case Constants.SETTING_URL:
                 config.setmUrl(value);
                 break;
         }

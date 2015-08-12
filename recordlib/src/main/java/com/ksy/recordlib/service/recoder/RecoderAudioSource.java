@@ -91,16 +91,8 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
         mRecorder.setAudioSamplingRate(mConfig.getAudioSampleRate());
         mRecorder.setAudioEncodingBitRate(mConfig.getAudioBitRate());
         mRecorder.setAudioEncoder(mConfig.getAudioEncorder());
-
         delay = 1024 * 1000 / mConfig.getAudioSampleRate();
-
-        if (mConfig.getAudioSampleRate() == 44100) {
-            aac_flag = (byte) (aac_flag | (byte) 0x0C);
-        } else if (mConfig.getAudioSampleRate() == 22050) {
-            aac_flag = (byte) (aac_flag | (byte) 0x08);
-        } else if (mConfig.getAudioSampleRate() == 11025) {
-            aac_flag = (byte) (aac_flag | (byte) 0x04);
-        }
+        aac_flag = (byte) 0xAF;
 
         try {
             this.piple = ParcelFileDescriptor.createPipe();
@@ -195,13 +187,12 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
                 e.printStackTrace();
             }
             if (isSpecialFrame) {
-                frame_content = null;
                 frame_content = special_content;
                 frame_length = special_content.length;
             }
             // make flv
             ts += delay;
-            sync.reset(ts);
+//            sync.reset(ts);
             flvFrameByteArray = new byte[FRAME_DEFINE_HEAD_LENGTH + frame_length + videoExtraSize + FRAME_DEFINE_FOOTER_LENGTH];
             flvFrameByteArray[0] = (byte) FRAME_DEFINE_TYPE_AUDIO;
             dataLengthArray = intToByteArray(frame_length + videoExtraSize);
@@ -252,62 +243,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             ksyAudio.size = flvFrameByteArray.length;
             ksyAudio.dts = (int) ts;
             ksyAudio.type = 12;
-
             ksyRecordSender.addToQueue(ksyAudio, FROM_AUDIO_DATA);
-
-           /* if (!isFirstDelay) {
-                delayHandler.postDelayed(runnableAudioSend, 500);
-
-            } else {
-                ksyRecordSender.addToQueue(ksyAudio, FROM_AUDIO_DATA);
-            }*/
-
-
-//            duration = System.currentTimeMillis() - oldTime;
-//            stats.push(duration);
-//            delay = stats.average();
-//            delay = 23;
-
-            /*for (int i = 0; i < flvFrameByteArray.length; i++) {
-                if (recordsum + i < buffer.length) {
-                    if (recordsum == 0) {
-                        byte[] flv = hexStringToBytes("464C56010400000009");
-                        for (int j = 0; j < 9; j++) {
-                            buffer[recordsum + j] = flv[j];
-                        }
-                        buffer[recordsum + 9 + 0] = 0;
-                        buffer[recordsum + 9 + 1] = 0;
-                        buffer[recordsum + 9 + 2] = 0;
-                        buffer[recordsum + 9 + 3] = 0;
-                        buffer[recordsum + 9 + 4 + i] = flvFrameByteArray[i];
-                    } else {
-                        buffer[recordsum + i] = flvFrameByteArray[i];
-                    }
-                } else {
-                    Log.d(Constants.LOG_TAG, "buffer write complete");
-                    if (!isWriteFlvInSdcard) {
-                        String path = getSDPath();
-                        File dir = new File(path + "/flvrecordtest");
-                        if (!dir.exists()) {
-                            dir.mkdir();
-                        }
-                        createFile(dir + File.separator + "voice.flv", buffer);
-                        Log.d(Constants.LOG_TAG, "write flv into sdcard complete");
-                        isWriteFlvInSdcard = true;
-                    } else {
-                        Log.d(Constants.LOG_TAG, "already write flv into sdcard complete");
-                    }
-                    break;
-
-                }
-            }
-            if (recordsum == 0) {
-                recordsum += flvFrameByteArray.length + 9 + 4;
-            } else {
-                recordsum += flvFrameByteArray.length;
-            }
-            */
-
             isSpecialFrame = false;
         }
 

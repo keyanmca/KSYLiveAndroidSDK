@@ -50,4 +50,11 @@ public class Constants {
 
     public static final String NETWORK_STATE_CHANGED = "net_work_changed";
 
+    public static final int SETTING_URL = 0;
+    public static final int SETTING_CAMERY_TYPE = 1;
+    public static final int SETTING_VIDEO_SIZE = 2;
+    public static final int SETTING_VIDEO_BITRATE = 3;
+    public static final int SETTING_AUDIO_BITRATE = 4;
+    public static final int SETTING_AUDIO_SAMPLE_RATE = 5;
+
 }

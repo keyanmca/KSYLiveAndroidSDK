@@ -1,7 +1,5 @@
 package com.ksy.recordlib.service.core;
 
-import android.util.Log;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -26,24 +24,6 @@ public abstract class KsyMediaSource implements Runnable {
 
     public abstract void release();
 
-//    protected KsyRecordSender addToQueue;
-
-    /*protected KsyMediaSource(String url, int i) {
-        Log.e("lixp", "KsyMediaSource  27  ....");
-
-//        KsyRecordSender.getInstance().setUrl(url, i);
-
-        addToQueue = new KsyRecordSender(url, i);
-
-      *//*  try {
-            addToQueue.start();
-
-        } catch (Exception e) {
-            Log.e("lixp","KsyMediaSource   e = " + e);
-        }*//*
-
-    }
-*/
 
     protected int fill(byte[] buffer, int offset, int length) throws IOException {
         int sum = 0, len;
@@ -72,30 +52,23 @@ public abstract class KsyMediaSource implements Runnable {
         return sum;
     }
 
-    protected static class ClockSync {
-
-
+    public static class ClockSync {
         private long frameSumDuration = 0;
         private long frameSumCount = 10000;
+        private long lastSysTime = 0;
+        public int avDistance = 0;
         private boolean inited = false;
         private double lastTS = 0;
-        private long lastSysTime = 0;
-        private long syncTime = 0;
-
-        public void reset(long pAudioTime) {
-            syncTime = pAudioTime;
-            Log.e("ClockSync", "pAudioTime==== " + pAudioTime);
-        }
+        public String lastMessage;
 
         public long getTime() {
-            long d = 0;
-            long delta = 0;
+            long d;
+            long delta;
             if (!inited) {
                 frameSumCount = 10000;
                 frameSumDuration = frameSumCount * 33;
                 lastSysTime = System.currentTimeMillis();
                 lastTS = 0;
-                syncTime = 0;
                 inited = true;
             } else {
                 long currentTime = System.currentTimeMillis();
@@ -103,22 +76,15 @@ public abstract class KsyMediaSource implements Runnable {
                 lastSysTime = currentTime;
                 frameSumDuration += d;
                 frameSumCount++;
-                long diff = (long) (syncTime - lastTS);
                 delta = 0;
-                if ((diff) > 500) {
-                    delta = (long) (1f / 3 * frameSumDuration / frameSumCount);
-                } else {
-                    delta = (long) (-1f / 3 * frameSumDuration / frameSumCount);
+                long average = (long) (frameSumDuration / frameSumCount);
+                if (avDistance > 100 || avDistance < -100) {
+                    //audio's DTS large than video's DTS so send video quickly ,delta--
+                    delta = (long) (1f / 30 * avDistance);
                 }
-                lastTS += 1.0f * frameSumDuration / frameSumCount + delta;
-
-            }
-            Log.e("ClockSync", "pVideoTime**** " + lastTS + " d=" + d + " delta=" + delta);
-            if (delta > 0) {
-                Log.e("ClockSync", "delat>0!!!");
+                lastTS += (average + delta);
             }
             return (long) lastTS;
-
         }
 
         public void clear() {

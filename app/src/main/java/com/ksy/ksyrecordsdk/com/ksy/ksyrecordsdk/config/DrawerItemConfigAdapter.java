@@ -57,7 +57,7 @@ public class DrawerItemConfigAdapter {
      */
     public MaterialDialog.Builder setDialogItems(MaterialDialog.Builder builder, int pos) {
         ConfigItem drawerItem = items.get(pos);
-        if (pos == 5) makeVideoProfile(drawerItem);
+        if (pos == Constants.SETTING_VIDEO_SIZE) makeVideoProfile(drawerItem);
         builder.title(drawerItem.configName)
                 .items(drawerItem.configValueName);
         return builder;
@@ -84,26 +84,23 @@ public class DrawerItemConfigAdapter {
 
     private void makeConfigItems() {
         items = new ArrayList<>();
-        ConfigItem audioSampleRate = new ConfigItem();
-        audioSampleRate.index = 0;
-        audioSampleRate.configName = context.getString(R.string.audio_sample_rate);
-        audioSampleRate.configValue = new int[]{Constants.CONFIG_AUDIO_SAMPLERATE_44100};
-        audioSampleRate.configValueName = new String[]{"44100Hz"};
-        items.add(audioSampleRate);
+        ConfigItem mUrl = new ConfigItem();
+        mUrl.index = 0;
+        mUrl.configName = context.getString(R.string.Url);
+        items.add(mUrl);
 
-        ConfigItem audioBitrate = new ConfigItem();
-        audioBitrate.index = 1;
-        audioBitrate.configName = context.getString(R.string.audio_bitrate);
-        audioBitrate.configValue = new int[]{Constants.CONFIG_AUDIO_BITRATE_32K, Constants.CONFIG_AUDIO_BITRATE_48K, Constants.CONFIG_AUDIO_BITRATE_64K};
-        audioBitrate.configValueName = new String[]{"32K", "48K", "64K"};
-        items.add(audioBitrate);
+        ConfigItem cameraType = new ConfigItem();
+        cameraType.index = 1;
+        cameraType.configName = context.getString(R.string.camera_type);
+        cameraType.configValue = new int[]{Constants.CONFIG_CAMERA_TYPE_BACK, Constants.CONFIG_CAMERA_TYPE_FRONT};
+        cameraType.configValueName = new String[]{"back", "front"};
+        items.add(cameraType);
 
-        ConfigItem videoFrameRate = new ConfigItem();
-        videoFrameRate.index = 2;
-        videoFrameRate.configName = context.getString(R.string.video_frame_rate);
-        videoFrameRate.configValue = new int[]{Constants.CONFIG_VIDEO_FRAME_RATE_10, Constants.CONFIG_VIDEO_FRAME_RATE_15, Constants.CONFIG_VIDEO_FRAME_RATE_21, Constants.CONFIG_VIDEO_FRAME_RATE_30};
-        videoFrameRate.configValueName = new String[]{"10fps", "15fps", "21fps", "30fps"};
-        items.add(videoFrameRate);
+        ConfigItem videoSize = new ConfigItem();
+        videoSize.index = 2;
+        videoSize.configName = context.getString(R.string.video_size);
+        makeVideoProfile(videoSize);
+        items.add(videoSize);
 
         ConfigItem videoBitrate = new ConfigItem();
         videoBitrate.index = 3;
@@ -112,23 +109,19 @@ public class DrawerItemConfigAdapter {
         videoBitrate.configValueName = new String[]{"250K", "500K", "750K", "1000K", "1500K"};
         items.add(videoBitrate);
 
-        ConfigItem cameraType = new ConfigItem();
-        cameraType.index = 4;
-        cameraType.configName = context.getString(R.string.camera_type);
-        cameraType.configValue = new int[]{Constants.CONFIG_CAMERA_TYPE_BACK, Constants.CONFIG_CAMERA_TYPE_FRONT};
-        cameraType.configValueName = new String[]{"back", "front"};
-        items.add(cameraType);
+        ConfigItem audioBitrate = new ConfigItem();
+        audioBitrate.index = 4;
+        audioBitrate.configName = context.getString(R.string.audio_bitrate);
+        audioBitrate.configValue = new int[]{Constants.CONFIG_AUDIO_BITRATE_32K, Constants.CONFIG_AUDIO_BITRATE_48K, Constants.CONFIG_AUDIO_BITRATE_64K};
+        audioBitrate.configValueName = new String[]{"32K", "48K", "64K"};
+        items.add(audioBitrate);
 
-        ConfigItem videoSize = new ConfigItem();
-        videoSize.index = 5;
-        videoSize.configName = context.getString(R.string.video_size);
-        makeVideoProfile(videoSize);
-        items.add(videoSize);
-
-        ConfigItem mUrl = new ConfigItem();
-        mUrl.index = 6;
-        mUrl.configName = context.getString(R.string.Url);
-        items.add(mUrl);
+        ConfigItem audioSampleRate = new ConfigItem();
+        audioSampleRate.index = 5;
+        audioSampleRate.configName = context.getString(R.string.audio_sample_rate);
+        audioSampleRate.configValue = new int[]{Constants.CONFIG_AUDIO_SAMPLERATE_44100};
+        audioSampleRate.configValueName = new String[]{"44100Hz"};
+        items.add(audioSampleRate);
     }
 
     private void makeVideoProfile(ConfigItem item) {

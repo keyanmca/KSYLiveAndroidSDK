@@ -40,9 +40,9 @@ public class KsyRecordSender {
     private static volatile int frame_video;
     private static volatile int frame_audio;
 
-    private static final int LEVEL1_QUEUE_SZIE = 10;
-    private static final int LEVEL2_QUEUE_SZIE = 50;
-    private static final int MAX_QUEUE_SIZE = 500;
+    private static final int LEVEL1_QUEUE_SZIE = 150;
+    private static final int LEVEL2_QUEUE_SZIE = 500;
+    private static final int MAX_QUEUE_SIZE = 800;
 
 
     private static KsyRecordSender ksyRecordSenderInstance = new KsyRecordSender();
@@ -67,6 +67,11 @@ public class KsyRecordSender {
     private long lastSendAudioDts;
     private long lastSendVideoTs;
     private long lastSendAudioTs;
+    private int dropAudioCount;
+    private int dropVideoCount;
+
+    private int lastAddAudioTs = 0;
+    private int lastAddVideoTs = 0;
     private Speedometer vidoeFps = new Speedometer();
     private Speedometer audioFps = new Speedometer();
 
@@ -103,10 +108,9 @@ public class KsyRecordSender {
     public String getAVBitrate() {
         return "currentTransferVideoBr=" + currentVideoBitrate +
                 ", currentTransferAudiobr:" + currentAudioBitrate +
-                "\n,vFps =" + vidoeFps.getSpeed() + "\naFps=" + audioFps.getSpeed() +
-                "\n, lastSendAudioTs:" + lastSendAudioTs + "det=" + (lastSendAudioTs - lastSendVideoDts) + ",size=" + recordPQueue.size();
+                "\n,vFps =" + vidoeFps.getSpeed() + " aFps=" + audioFps.getSpeed() + " dropA:" + dropAudioCount + " dropV" + dropVideoCount +
+                "\n, lastSendAudioTs:" + lastSendAudioTs + "det=" + (lastSendAudioTs - lastSendVideoDts) + ",size=" + recordPQueue.size() + "\nf_v=" + frame_video + " f_a=" + frame_audio + "\n";
     }
-
 
     public void start(Context pContext) throws IOException {
         IntentFilter filter = new IntentFilter(Constants.NETWORK_STATE_CHANGED);
@@ -161,7 +165,7 @@ public class KsyRecordSender {
     }
 
     private boolean needDropFrame(KSYFlvData ksyFlv) {
-        boolean dropFrame;
+        boolean dropFrame = false;
         int queueSize = recordPQueue.size();
         int dts = ksyFlv.dts;
         long duration = dts - lastSendVideoDts;
@@ -201,6 +205,11 @@ public class KsyRecordSender {
     }
 
     private void statDropFrame(KSYFlvData dropped) {
+        if (dropped.type == KSYFlvData.FLV_TYPE_VIDEO) {
+            dropVideoCount++;
+        } else if (dropped.type == KSYFlvData.FLV_TYTPE_AUDIO) {
+            dropAudioCount++;
+        }
         Log.d(TAG, "drop frame !!" + dropped.isKeyframe());
     }
 
@@ -251,10 +260,13 @@ public class KsyRecordSender {
         if (k == FROM_VIDEO) { //视频数据
             vidoeFps.tickTock();
             frame_video++;
+            lastAddVideoTs = ksyFlvData.dts;
         } else if (k == FROM_AUDIO) {//音频数据
             audioFps.tickTock();
             frame_audio++;
+            lastAddAudioTs = ksyFlvData.dts;
         }
+        KsyMediaSource.sync.avDistance = (lastAddAudioTs - lastAddVideoTs);
         // add video data
         synchronized (mutex) {
             if (recordPQueue.size() > MAX_QUEUE_SIZE) {
@@ -325,6 +337,7 @@ public class KsyRecordSender {
     public static class Speedometer {
         private int time;
         private long startTime;
+        private float currentFps = 0;
 
         public float getSpeedAndRestart() {
             float speed = getSpeed();
@@ -337,6 +350,13 @@ public class KsyRecordSender {
                 startTime = System.currentTimeMillis();
             }
             time++;
+            long current = System.currentTimeMillis();
+            long lapse = current - startTime;
+            if (lapse > 2000) {
+                currentFps = ((float) time / lapse * 1000);
+                startTime = current;
+                time = 0;
+            }
         }
 
         public void start() {
@@ -346,12 +366,7 @@ public class KsyRecordSender {
 
 
         public float getSpeed() {
-            long lapse = System.currentTimeMillis() - startTime;
-            if (lapse > 0) {
-                return (float) time / lapse * 1000;
-            } else {
-                return 0f;
-            }
+            return currentFps;
         }
 
     }

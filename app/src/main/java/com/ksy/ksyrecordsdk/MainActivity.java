@@ -36,6 +36,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
+
+    private static final boolean DEBUG = true;
     private CameraSurfaceView mSurfaceView;
     private FloatingActionButton mFab;
     private boolean mRecording = false;
@@ -76,18 +78,20 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     }
 
     private void startBitrateTimer() {
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                bitrate.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        bitrate.setText(KsyRecordSender.getRecordInstance().getAVBitrate());
-                    }
-                }, 1000);
-            }
-        }, 1000, 1000);
+        if (DEBUG) {
+            Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    bitrate.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            bitrate.setText(KsyRecordSender.getRecordInstance().getAVBitrate());
+                        }
+                    }, 1000);
+                }
+            }, 1000, 1000);
+        }
     }
 
     private void initDrawer() {
@@ -120,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         drawer.setOnItemClickListener(new DrawerItem.OnItemClickListener() {
             @Override
             public void onClick(final DrawerItem drawerItem, long l, final int position) {
-                if (position == 6) {
+                if (position == Constants.SETTING_URL) {
                     new MaterialDialog.Builder(MainActivity.this)
                             .title(R.string.Url)
                             .inputType(InputType.TYPE_CLASS_TEXT)
@@ -170,7 +174,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         client = KsyRecordClient.getInstance(getApplicationContext());
         client.setConfig(config);
         client.setDisplayPreview(mSurfaceView);
-        // To do
     }
 
 
