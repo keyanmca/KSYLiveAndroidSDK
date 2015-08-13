@@ -20,7 +20,7 @@ KSLiveSDK for Android(以下简称SDK)是基于RTMP的推流器
 - Android权限申明
 
 ```
-	<!-- 硬件特性 -->
+	<!-- 使用权限 -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
