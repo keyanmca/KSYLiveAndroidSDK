@@ -35,7 +35,7 @@ import com.ksy.recordlib.service.util.Constants;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
+public class MainActivity extends AppCompatActivity {
 
     private static final boolean DEBUG = true;
     private CameraSurfaceView mSurfaceView;
@@ -163,7 +163,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private void setupSurfaceView() {
         mSurfaceView = (CameraSurfaceView) findViewById(R.id.surfaceView);
         SurfaceHolder holder = mSurfaceView.getHolder();
-        holder.addCallback(this); // holder callback
         // setType must be set in old version, otherwise may cause crash
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
@@ -216,24 +215,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     @Override
     protected void onRestart() {
         super.onRestart();
-    }
-
-    /**
-     * Surface Holder Callback
-     */
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        Log.d(Constants.LOG_TAG, "surfaceCreated");
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Log.d(Constants.LOG_TAG, "surfaceChanged");
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.d(Constants.LOG_TAG, "surfaceDestroyed");
     }
 
     @Override

@@ -35,12 +35,12 @@ KSLiveSDK for Android(以下简称SDK)是基于RTMP的推流器
 
 ###使用
 
-- 可以直接clone工程之后 使用Android Stuido的Import project(Eclipse ADT,Gradle,etc.)导入工程,app即为示例Demo,直接运行即可.
+- 可以直接clone工程之后 使用Android Studio的Import project(Eclipse ADT,Gradle,etc.)导入工程,app即为示例Demo,直接运行即可.
 
 ###集成
 ####初始化
 
-- 创建KsyRecordClient实例 KsyRecordCLient是SDK的核心控制器,一切交互通过这个类进行交互.KsyRecordClient为单例模式,全局只能创建一个.创建后必须先设置Config和预览的SurfaceView或TextureView
+- 创建KsyRecordClient实例 KsyRecordClient是SDK的核心控制器,一切交互通过这个类进行交互.KsyRecordClient为单例模式,全局只能创建一个.创建后必须先设置Config和预览的SurfaceView或TextureView
 
 ```
 	client = KsyRecordClient.getInstance(getApplicationContext());
@@ -69,4 +69,4 @@ KSLiveSDK for Android(以下简称SDK)是基于RTMP的推流器
 
 ##已知问题
 - 音视频同步问题,目前使用MediaRecorder的3GPP封装没有timestemp,需要手工编码TS
-,导致音视频播放时候可能出现帧间隔过大的情况,在某些手机上(Mi2A, Meizu MX4Pro)可能会导致音视频帧间隔改变导致的画面轻微跳动卡顿等,这个问题会在日后通过优化同步时钟或使用其他封装格式实现
+,导致音视频播放时候可能出现帧间隔过大的情况,在某些手机上(Mi2A, Meizu MX4Pro)可能会导致音视频帧间隔改变导致的画面轻微跳动卡顿等,在日后通过优化同步时钟或使用其他封装格式实现.
