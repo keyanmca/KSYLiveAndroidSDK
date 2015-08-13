@@ -60,10 +60,12 @@ public abstract class KsyMediaSource implements Runnable {
         private boolean inited = false;
         private double lastTS = 0;
         public String lastMessage;
+        long average = 0;
 
         public long getTime() {
             long d;
-            long delta;
+            long delta = 0;
+
             if (!inited) {
                 frameSumCount = 10000;
                 frameSumDuration = frameSumCount * 33;
@@ -77,13 +79,14 @@ public abstract class KsyMediaSource implements Runnable {
                 frameSumDuration += d;
                 frameSumCount++;
                 delta = 0;
-                long average = (long) (frameSumDuration / frameSumCount);
+                average = (long) (frameSumDuration / frameSumCount);
                 if (avDistance > 100 || avDistance < -100) {
                     //audio's DTS large than video's DTS so send video quickly ,delta--
-                    delta = (long) (1f / 30 * avDistance);
+                    delta = (long) (1f / 50 * avDistance);
                 }
                 lastTS += (average + delta);
             }
+            lastMessage = String.format("sync: avDis=%d delta=%d lastTs=%.1f avg=%d", avDistance, delta, lastTS, average);
             return (long) lastTS;
         }
 

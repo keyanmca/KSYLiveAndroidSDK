@@ -262,7 +262,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         }
         switch (item.getItemId()) {
             case R.id.action_github:
-                String url = "https://github.com/EflakeEver/KsyRecordSdk";
+                String url = "https://github.com/ks3sdk/KSLiveAndroidSDK";
                 Intent i = new Intent(Intent.ACTION_VIEW);
                 i.setData(Uri.parse(url));
                 startActivity(i);

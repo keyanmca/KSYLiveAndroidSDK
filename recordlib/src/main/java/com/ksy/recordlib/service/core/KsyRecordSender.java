@@ -109,7 +109,7 @@ public class KsyRecordSender {
         return "currentTransferVideoBr=" + currentVideoBitrate +
                 ", currentTransferAudiobr:" + currentAudioBitrate +
                 "\n,vFps =" + vidoeFps.getSpeed() + " aFps=" + audioFps.getSpeed() + " dropA:" + dropAudioCount + " dropV" + dropVideoCount +
-                "\n, lastSendAudioTs:" + lastSendAudioTs + "det=" + (lastSendAudioTs - lastSendVideoDts) + ",size=" + recordPQueue.size() + "\nf_v=" + frame_video + " f_a=" + frame_audio + "\n";
+                "\n, lastSendAudioTs:" + lastSendAudioTs + "det=" + (lastSendAudioTs - lastSendVideoDts) + ",size=" + recordPQueue.size() + "\nf_v=" + frame_video + " f_a=" + frame_audio + "\n" + KsyMediaSource.sync.lastMessage;
     }
 
     public void start(Context pContext) throws IOException {
@@ -257,22 +257,27 @@ public class KsyRecordSender {
         if (ksyFlvData.size <= 0) {
             return;
         }
-        if (k == FROM_VIDEO) { //视频数据
-            vidoeFps.tickTock();
-            frame_video++;
-            lastAddVideoTs = ksyFlvData.dts;
-        } else if (k == FROM_AUDIO) {//音频数据
-            audioFps.tickTock();
-            frame_audio++;
-            lastAddAudioTs = ksyFlvData.dts;
-        }
+
         KsyMediaSource.sync.avDistance = (lastAddAudioTs - lastAddVideoTs);
         // add video data
         synchronized (mutex) {
             if (recordPQueue.size() > MAX_QUEUE_SIZE) {
-                recordPQueue.remove();
+                if (recordPQueue.remove().type == KSYFlvData.FLV_TYPE_VIDEO) {
+                    frame_video--;
+                } else {
+                    frame_audio--;
+                }
             }
             recordPQueue.add(ksyFlvData);
+            if (k == FROM_VIDEO) { //视频数据
+                vidoeFps.tickTock();
+                frame_video++;
+                lastAddVideoTs = ksyFlvData.dts;
+            } else if (k == FROM_AUDIO) {//音频数据
+                audioFps.tickTock();
+                frame_audio++;
+                lastAddAudioTs = ksyFlvData.dts;
+            }
         }
     }
 
