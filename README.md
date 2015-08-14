@@ -1,7 +1,7 @@
-#KSLiveSDK for Android使用指南
+#KSYLiveSDK for Android使用指南
 ---
 ##SDK说明
-KSLiveSDK for Android(以下简称SDK)是基于RTMP的推流器
+KSYLiveSDK for Android(以下简称SDK)是基于RTMP的推流器
 
 ###开发环境
 本SDK使用了Android Studio + Gradle的方式进行构建,暂不支持eclipse的方式,目前处于测试阶段,只提供工程项目,日后会发布AAR形式的SKD,并上传Gradle仓库。
