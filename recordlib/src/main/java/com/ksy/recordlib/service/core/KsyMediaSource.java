@@ -15,6 +15,7 @@ public abstract class KsyMediaSource implements Runnable {
     protected byte[] header = new byte[4];
     protected long ts = 0;
     protected static ClockSync sync = new ClockSync();
+    private static final int MAX_DISTANCE_TIME = 100;
 
     public abstract void prepare();
 
@@ -80,9 +81,9 @@ public abstract class KsyMediaSource implements Runnable {
                 frameSumCount++;
                 delta = 0;
                 average = (long) (frameSumDuration / frameSumCount);
-                if (avDistance > 100 || avDistance < -100) {
+                if (avDistance > MAX_DISTANCE_TIME || avDistance < -MAX_DISTANCE_TIME) {
                     //audio's DTS large than video's DTS so send video quickly ,delta--
-                    delta = (long) (1f / 50 * avDistance);
+                    delta = (long) (1f / MAX_DISTANCE_TIME * avDistance);
                 }
                 lastTS += (average + delta);
             }

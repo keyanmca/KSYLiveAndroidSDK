@@ -40,9 +40,10 @@ public class KsyRecordSender {
     private static volatile int frame_video;
     private static volatile int frame_audio;
 
-    private static final int LEVEL1_QUEUE_SZIE = 150;
+    private static final int LEVEL1_QUEUE_SZIE = 250;
     private static final int LEVEL2_QUEUE_SZIE = 500;
     private static final int MAX_QUEUE_SIZE = 800;
+    private static final int MIN_QUEUE_BUFFER = 1;
 
 
     private static KsyRecordSender ksyRecordSenderInstance = new KsyRecordSender();
@@ -72,6 +73,11 @@ public class KsyRecordSender {
 
     private int lastAddAudioTs = 0;
     private int lastAddVideoTs = 0;
+
+    private boolean inited = false;
+    private long ideaStartTime;
+    private long systemStartTime;
+
     private Speedometer vidoeFps = new Speedometer();
     private Speedometer audioFps = new Speedometer();
 
@@ -135,7 +141,7 @@ public class KsyRecordSender {
             while (!connected) {
                 Thread.sleep(10);
             }
-            if (frame_video > 1 && frame_audio > 1) {
+            if (frame_video > MIN_QUEUE_BUFFER && frame_audio > MIN_QUEUE_BUFFER) {
                 KSYFlvData ksyFlv = null;
                 synchronized (mutex) {
                     if (recordPQueue.size() > 0) {
@@ -157,6 +163,7 @@ public class KsyRecordSender {
                     statDropFrame(ksyFlv);
                 } else {
                     lastRefreshTime = System.currentTimeMillis();
+                    waiting(ksyFlv);
                     int w = _write(ksyFlv.byteBuffer, ksyFlv.byteBuffer.length);
                     statBitrate(w, ksyFlv.type);
                 }
@@ -330,6 +337,29 @@ public class KsyRecordSender {
         }
     }
 
+    public void waiting(KSYFlvData ksyFlvData) throws InterruptedException {
+        if (ksyFlvData.type != KSYFlvData.FLV_TYTPE_AUDIO) {
+            return;
+        }
+        long ts = ksyFlvData.dts;
+        if (!inited) {
+            ideaStartTime = ts;
+            systemStartTime = System.currentTimeMillis();
+            inited = true;
+            return;
+        }
+        long ideaTime = System.currentTimeMillis() - systemStartTime + ideaStartTime;
+//            Log.e("SenderSync", "type=" + ksyFlvData.type + " ts=" + ts + " ideaTime=" + ideaTime + " d=" + (ts - ideaTime));
+        if (Math.abs(ideaTime - ts) > 100) {
+            inited = false;
+            return;
+        }
+        while (ts > ideaTime) {
+            Thread.sleep(1);
+            ideaTime = System.currentTimeMillis() - systemStartTime + ideaStartTime;
+        }
+    }
+
     private native int _set_output_url(String url);
 
     private native int _open();
@@ -375,5 +405,6 @@ public class KsyRecordSender {
         }
 
     }
+
 }
 
