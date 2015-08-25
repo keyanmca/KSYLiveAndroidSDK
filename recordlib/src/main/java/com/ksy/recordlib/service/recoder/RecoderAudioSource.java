@@ -87,7 +87,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
         mRecorder.setOnInfoListener(this);
         mRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
-        mRecorder.setAudioChannels(1);
+        mRecorder.setAudioChannels(2);
         mRecorder.setAudioSamplingRate(mConfig.getAudioSampleRate());
         mRecorder.setAudioEncodingBitRate(mConfig.getAudioBitRate());
         mRecorder.setAudioEncoder(mConfig.getAudioEncorder());
@@ -178,6 +178,7 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
             int sfi = (header_buffer_rest[0] & (byte) 0x3c) >> 2;
             int ch = ((header_buffer_rest[0] & (byte) 0x01) << 6) | ((header_buffer_rest[1] & (byte) 0xc0) >> 6);
             int x = (((profile + 1) & 0x1f) << 11) | ((sfi & 0x0f) << 7) | ((ch & 0x0f) << 3);
+            Log.e("RecoderVideoSource", "length =" + length);
             special_content = intToByteArrayTwoByte(x);
             int frame_length = length - header_size;
             byte[] frame_content = new byte[frame_length];
@@ -187,8 +188,11 @@ public class RecoderAudioSource extends KsyMediaSource implements MediaRecorder.
                 e.printStackTrace();
             }
             if (isSpecialFrame) {
-                frame_content = special_content;
-                frame_length = special_content.length;
+                //AAC_AudioSpecificConfig use 1210 as default temporary
+                frame_content = new byte[]{
+                        0x12, 0x10
+                };
+                frame_length = frame_content.length;
             }
             // make flv
             ts += delay;
